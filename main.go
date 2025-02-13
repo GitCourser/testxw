@@ -6,8 +6,6 @@ import (
 	"runtime"
 	"time"
 
-	"flag"
-	"os"
 	"xuanwu/config"
 	serve "xuanwu/gin"
 	mylog "xuanwu/log"
