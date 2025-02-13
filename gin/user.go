@@ -1,7 +1,6 @@
 package serve
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"xuanwu/config"
