@@ -1,10 +1,11 @@
 package mylog
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"timecron/lib"
+	"xuanwu/lib"
 )
 
 const logDir = "data/logs"

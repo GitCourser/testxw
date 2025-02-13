@@ -56,11 +56,11 @@ func ReadConfigFileToJson() (gjson.Result, error) {
 		fmt.Println("配置文件读取失败")
 		/* 配置文件不存在,创建json文件 */
 		str := fmt.Sprintf(`{
-			"name": "timecron",
+			"name": "xuanwu",
 			"username":"admin",
 			"password":"21232f297a57a5a743894a0e4a801fc3",
 			"task": []
-		  }`, time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05"))
+		  }`)
 		err := WriteConfigFile(file, []byte(str))
 		if err != nil {
 			log.Println("配置文件创建失败")

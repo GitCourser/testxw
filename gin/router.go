@@ -5,8 +5,8 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"timecron/gin/cron"
-	"timecron/static"
+	"xuanwu/gin/cron"
+	"xuanwu/static"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"

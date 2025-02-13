@@ -6,10 +6,12 @@ import (
 	"runtime"
 	"time"
 
-	"timecron/config"
-	serve "timecron/gin"
-	mylog "timecron/log"
-	"timecron/timecron"
+	"flag"
+	"os"
+	"xuanwu/config"
+	serve "xuanwu/gin"
+	mylog "xuanwu/log"
+	"xuanwu/xuanwu"
 )
 
 func init() {
@@ -40,5 +42,5 @@ func main() {
 	//初始化web服务 传递端口
 	go serve.InitApi(cfg, nil)
 	//初始化定时任务
-	timecron.CronInit(cfg)
+	xuanwu.CronInit(cfg)
 }
