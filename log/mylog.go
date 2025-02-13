@@ -1,7 +1,6 @@
 package mylog
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
