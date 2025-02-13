@@ -1,7 +1,7 @@
 package serve
 
 import (
-	r "timecron/gin/response"
+	r "xuanwu/gin/response"
 
 	"github.com/gin-gonic/gin"
 )
