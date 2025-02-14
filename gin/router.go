@@ -42,12 +42,6 @@ func (p *ApiData) Init() {
 	RootRoute.Use(p.CookieHandler()) //使用中间件进行全局用户认证
 
 	routeApi := RootRoute.Group("/api") //  api接口总路由
-	filesys, err := static.StaticFS()
-	if err != nil {
-		log.Println("加载后台文件失败,web服务停止")
-		return
-	}
-	RootRoute.StaticFS("/", http.FS(filesys))
 
 	routeAdmin := routeApi.Group("/user") // 用户数据接口
 	routeAdmin.GET("/info", p.HandlerUserInfo)
@@ -82,6 +76,12 @@ func (p *ApiData) Init() {
 	routeCron.GET("/getlog", cron.HandlerGetLog)          //获取日志
 	routeCron.GET("/downlog", cron.HandlerDownloadFile)   //获取日志
 
+	filesys, err := static.StaticFS()
+	if err != nil {
+		log.Println("加载后台文件失败,web服务停止")
+		return
+	}
+	RootRoute.StaticFS("/", http.FS(filesys))
 	// 关键点【解决页面刷新404的问题】
 	RootRoute.NoRoute(func(c *gin.Context) {
 		//设置响应状态
