@@ -40,6 +40,15 @@ func (p *ApiData) Init() {
 	// RootRoute.Use(Cors())
 	RootRoute.Use(p.CookieHandler()) //使用中间件进行全局用户认证
 
+	// 新的静态资源处理
+	frontend, _ := fs.Sub(static.Assets, "dist")
+	RootRoute.StaticFS("/", http.FS(frontend))  // 直接挂载到根路径
+	
+	// 处理前端路由
+	RootRoute.NoRoute(func(c *gin.Context) {
+		c.FileFromFS("dist/index.html", http.FS(static.Assets))
+	})
+
 	routeApi := RootRoute.Group("/api") //  api接口总路由
 
 	routeAdmin := routeApi.Group("/user") // 用户数据接口
@@ -74,15 +83,6 @@ func (p *ApiData) Init() {
 	routeCron.GET("/dellogall", cron.HandlerDeleteAllLog) //删除日志
 	routeCron.GET("/getlog", cron.HandlerGetLog)          //获取日志
 	routeCron.GET("/downlog", cron.HandlerDownloadFile)   //获取日志
-
-	// 新的静态资源处理
-	frontend, _ := fs.Sub(static.Assets, "dist")
-	RootRoute.StaticFS("/", http.FS(frontend))  // 直接挂载到根路径
-	
-	// 处理前端路由
-	RootRoute.NoRoute(func(c *gin.Context) {
-		c.FileFromFS("dist/index.html", http.FS(static.Assets))
-	})
 
 	//动态注册插件路由
 	if p.AddApi != nil {
