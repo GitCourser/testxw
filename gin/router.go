@@ -76,12 +76,12 @@ func (p *ApiData) Init() {
 	routeCron.GET("/downlog", cron.HandlerDownloadFile)   //获取日志
 
 	// 新的静态资源处理
-	frontend, _ := fs.Sub(static.Assets, "assets")
+	frontend, _ := fs.Sub(static.Assets, "dist")
 	RootRoute.StaticFS("/", http.FS(frontend))  // 直接挂载到根路径
 	
 	// 处理前端路由
 	RootRoute.NoRoute(func(c *gin.Context) {
-		c.FileFromFS("assets/index.html", http.FS(static.Assets))
+		c.FileFromFS("dist/index.html", http.FS(static.Assets))
 	})
 
 	//动态注册插件路由
