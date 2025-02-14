@@ -53,12 +53,12 @@ func CronInit(cfg gjson.Result) {
 	})
 
 	// 遍历系统任务切片中的每一项
-	// for _, item := range SystemTask {
-	// 	if item.Isrun != "2" { //启动时候是否执行
-	// 		continue
-	// 	}
-	// 	AddRunFunc(item)
-	// }
+	for _, item := range SystemTask {
+		if item.Isrun != "2" { //启动时候是否执行
+			continue
+		}
+		AddRunFunc(item)
+	}
 
 	C.Start()
 	defer C.Stop()
