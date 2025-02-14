@@ -14,17 +14,15 @@ import (
 )
 
 type cronEntry struct {
-	ID string `json:"id"`
-	// Schedule cron.Schedule
-	Next string `json:"next"`
-	Name string `json:"name"`
-	Time string `json:"time"`
-	Type string `json:"type"`
-	Exec string `json:"exec"`
+	ID      string   `json:"id"`
+	Next    string   `json:"next"`
+	Name    string   `json:"name"`
+	Times   []string `json:"times"`
+	WorkDir string   `json:"workdir"`
+	Exec    string   `json:"exec"`
 }
 
 func HandlerRunTaskList(c *gin.Context) {
-
 	var entries []cronEntry
 	for _, e := range mycron.C.Entries() {
 		customData := mycron.TaskData[e.ID]
@@ -32,13 +30,12 @@ func HandlerRunTaskList(c *gin.Context) {
 			continue
 		}
 		entry := cronEntry{
-			ID: strconv.Itoa(int(e.ID)),
-			// Schedule: e.Schedule,
-			Next: e.Next.String(),
-			Name: customData.Name,
-			Time: customData.Time,
-			Type: customData.Type,
-			Exec: customData.Exec,
+			ID:      strconv.Itoa(int(e.ID)),
+			Next:    e.Next.String(),
+			Name:    customData.Name,
+			Times:   customData.Times,
+			WorkDir: customData.WorkDir,
+			Exec:    customData.Exec,
 		}
 		entries = append(entries, entry)
 	}
@@ -87,31 +84,32 @@ func HandlerAddRunTask(c *gin.Context) {
 		if value.Get("name").String() == name {
 			TaskData := mycron.TaskInfo{
 				Name: value.Get("name").String(),
-				Time: value.Get("time").String(),
-				Type: value.Get("type").String(),
-				Exec: value.Get("exec").String(),
+				Times: func() []string {
+					var times []string
+					for _, t := range value.Get("times").Array() {
+						times = append(times, t.String())
+					}
+					return times
+				}(),
+				WorkDir: value.Get("workdir").String(),
+				Exec:    value.Get("exec").String(),
 			}
 			// 添加运行任务
 			mycron.AddRunFunc(TaskData)
 			r.OkMesage(c, "运行成功")
 			return
-
 		}
-		println(value.String())
 	}
 	r.ErrMesage(c, "运行失败,任务不存在")
 }
 
 /* 单次执行任务 */
-
 func HandlerOneRunTask(c *gin.Context) {
-
 	var task mycron.TaskInfo
 	if err := c.ShouldBindJSON(&task); err != nil {
 		// 处理错误
 		r.ErrMesage(c, "参数错误")
 	}
 	go mycron.OneRunFunc(task)
-	// time.Sleep(10 * time.Second)
 	r.OkMesage(c, "执行请求已发送")
 }
