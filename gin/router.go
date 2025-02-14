@@ -2,6 +2,7 @@ package serve
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"xuanwu/gin/cron"
@@ -41,6 +42,12 @@ func (p *ApiData) Init() {
 	RootRoute.Use(p.CookieHandler()) //使用中间件进行全局用户认证
 
 	routeApi := RootRoute.Group("/api") //  api接口总路由
+	filesys, err := static.StaticFS()
+	if err != nil {
+		log.Println("加载后台文件失败,web服务停止")
+		return
+	}
+	RootRoute.StaticFS("/admin", http.FS(filesys))
 
 	routeAdmin := routeApi.Group("/user") // 用户数据接口
 	routeAdmin.GET("/info", p.HandlerUserInfo)
@@ -75,21 +82,18 @@ func (p *ApiData) Init() {
 	routeCron.GET("/getlog", cron.HandlerGetLog)          //获取日志
 	routeCron.GET("/downlog", cron.HandlerDownloadFile)   //获取日志
 
-	filesys, err := static.StaticFS()
-	if err != nil {
-		log.Println("加载后台文件失败,web服务停止")
-		return
-	}
-	fileServer := http.FileServer(http.FS(filesys))
-	RootRoute.NoRoute(gin.WrapH(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 检查请求的路径是否存在
-		_, err := filesys.Open(r.URL.Path)
-		if err != nil {
-		    // 文件不存在，重定向到 index.html
-		    r.URL.Path = "/index.html"
-		}
-		fileServer.ServeHTTP(w, r)
-	})))
+	// 关键点【解决页面刷新404的问题】
+	RootRoute.NoRoute(func(c *gin.Context) {
+		//设置响应状态
+		c.Writer.WriteHeader(http.StatusOK)
+		//载入首页
+		indexHTML, _ := fs.ReadFile(filesys, "index.html")
+		c.Writer.Write(indexHTML)
+		//响应HTML类型
+		c.Writer.Header().Add("Accept", "text/html")
+		//显示刷新
+		c.Writer.Flush()
+	})
 
 	//动态注册插件路由
 	if p.AddApi != nil {
