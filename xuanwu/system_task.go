@@ -12,7 +12,7 @@ import (
 var SystemTask = []TaskInfo{
 	{
 		Name:    "定时清理日志或者文件",
-		Times:   []string{"0 0 * * *", "0 12 * * *"},
+		Times:   "[\"0 0 * * *\", \"0 12 * * *\"]",
 		WorkDir: "",
 		Exec:    "",
 		System:  true,
