@@ -12,7 +12,7 @@ import (
 var SystemTask = []TaskInfo{
 	{
 		Name:   "每周定时检测更新版本",
-		Times:  [""],
+		Times:  "[]",
 		WorkDir:   "",
 		Exec:   "",
 		System: true,
@@ -20,7 +20,7 @@ var SystemTask = []TaskInfo{
 	},
 	{
 		Name:   "定时清理日志或者文件",
-		Times:  [""],
+		Times:  "[]",
 		WorkDir:   "",
 		Exec:   "",
 		System: true,
@@ -28,7 +28,7 @@ var SystemTask = []TaskInfo{
 	},
 	{
 		Name:   "定时检测系统状态",
-		Times:  [""],
+		Times:  "[]",
 		WorkDir:   "",
 		Exec:   "",
 		System: true,
