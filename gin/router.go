@@ -81,19 +81,16 @@ func (p *ApiData) Init() {
 		log.Println("加载后台文件失败,web服务停止")
 		return
 	}
-	RootRoute.StaticFS("/", http.FS(filesys))
-	// 关键点【解决页面刷新404的问题】
-	RootRoute.NoRoute(func(c *gin.Context) {
-		//设置响应状态
-		c.Writer.WriteHeader(http.StatusOK)
-		//载入首页
-		indexHTML, _ := fs.ReadFile(filesys, "index.html")
-		c.Writer.Write(indexHTML)
-		//响应HTML类型
-		c.Writer.Header().Add("Accept", "text/html")
-		//显示刷新
-		c.Writer.Flush()
-	})
+	fileServer := http.FileServer(http.FS(filesys))
+	RootRoute.NoRoute(gin.WrapH(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 检查请求的路径是否存在
+		_, err := filesys.Open(r.URL.Path)
+		if err != nil {
+		    // 文件不存在，重定向到 index.html
+		    r.URL.Path = "/index.html"
+		}
+		fileServer.ServeHTTP(w, r)
+	})))
 
 	//动态注册插件路由
 	if p.AddApi != nil {
