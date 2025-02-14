@@ -47,7 +47,7 @@ func (p *ApiData) Init() {
 		log.Println("加载后台文件失败,web服务停止")
 		return
 	}
-	RootRoute.StaticFS("/admin", http.FS(filesys))
+	RootRoute.StaticFS("/", http.FS(filesys))
 
 	routeAdmin := routeApi.Group("/user") // 用户数据接口
 	routeAdmin.GET("/info", p.HandlerUserInfo)
