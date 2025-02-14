@@ -12,7 +12,16 @@ import (
 var SystemTask = []TaskInfo{
 	{
 		Name:    "定时清理日志或者文件",
-		Times:   []string{"0 0 0 * * ?"},
+		Times:   []string {
+            results := value.Get("times").Array()
+            strSlice := make([]string, 0, len(results))
+            for _, res := range results {
+                if res.Type == gjson.String {
+                    strSlice = append(strSlice, res.String())
+                }
+            }
+            return strSlice
+        }(),
 		WorkDir: "",
 		Exec:    "",
 		System:  true,
