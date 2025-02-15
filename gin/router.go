@@ -70,11 +70,11 @@ func (p *ApiData) Init() {
 	routeCron.POST("/add", cron.HandlerAddTask)        //添加任务源
 	routeCron.POST("/update", cron.HandlerUpdateTask)  //校验时间表达式
 	/* 运行中任务 */
-	routeCron.GET("/runlist", cron.HandlerRunTaskList) //获取列表
-	routeCron.GET("/remove", cron.HandlerRemoveTask)   //移除运行中任务
-	routeCron.GET("/run", cron.HandlerAddRunTask)      //运行任务
+	routeCron.GET("/list", cron.HandlerRunTaskList)    //获取运行中的任务列表
+	routeCron.GET("/enable", cron.HandlerEnableTask)   //启用任务
+	routeCron.GET("/disable", cron.HandlerDisableTask) //禁用任务
 	routeCron.GET("/valid", cron.Valid)                //校验时间表达式
-	routeCron.POST("/test", cron.HandlerOneRunTask)    //运行测试任务
+	routeCron.POST("/execute", cron.HandlerExecuteTask) //立即执行任务
 	/* 运行日志 */
 	routeCron.GET("/log", cron.HandlerAllLogList)         //获取列表
 	routeCron.GET("/dellog", cron.HandlerDeleteLog)       //删除日志
