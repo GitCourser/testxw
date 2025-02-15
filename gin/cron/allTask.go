@@ -71,7 +71,7 @@ func HandlerAddTask(c *gin.Context) {
 	jp.Set("type", taskType)
 	jp.Set("time", timestr)
 	jp.Set("exec", jsonData["exec"])
-	jp.Set("isrun", jsonData["isrun"])
+	jp.Set("enable", jsonData["enable"])
 	jp.Set("desc", jsonData["desc"])
 	jp.Set("createtime", time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05"))
 	cfg, err := config.ReadConfigFileToJson()
@@ -149,8 +149,8 @@ func HandlerUpdateTask(c *gin.Context) {
 	}
 	name := jsonData["name"] // 是 c.Request.URL.Query().Get("lastname") 的简写
 	time := jsonData["time"]
-	isrun := jsonData["isrun"]
-	if name == "" || time == "" || isrun == "" {
+	enable := jsonData["enable"]
+	if name == "" || time == "" {
 		r.ErrMesage(c, "参数不能为空")
 		return
 	}
@@ -164,7 +164,7 @@ func HandlerUpdateTask(c *gin.Context) {
 	for i, isname := range result.Array() {
 		if isname.String() == name {
 			jp.Set(fmt.Sprintf("task.%v.time", i), time)
-			jp.Set(fmt.Sprintf("task.%v.isrun", i), isrun)
+			jp.Set(fmt.Sprintf("task.%v.enable", i), enable)
 			err := os.WriteFile("data/config.json", []byte(jp.data), 0644)
 			if err != nil {
 				r.ErrMesage(c, "修改失败,配置文件写入失败")
@@ -176,7 +176,7 @@ func HandlerUpdateTask(c *gin.Context) {
 		// println(isname.String())
 		// println(i)
 	}
-	r.ErrMesage(c, "删除失败,任务不存在")
+	r.ErrMesage(c, "修改失败,任务不存在")
 
 }
 
