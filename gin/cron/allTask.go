@@ -3,9 +3,9 @@ package cron
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
-	"time"
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	mycron "xuanwu/xuanwu"
@@ -14,18 +14,6 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
-
-func HandlerAllTaskList(c *gin.Context) {
-	cfg, err := config.ReadConfigFileToJson()
-	if err != nil {
-		log.Println("读取配置文件出错")
-		return
-	}
-
-	var tempArray []interface{}
-	json.Unmarshal([]byte(cfg.Get("task").Raw), &tempArray)
-	r.OkData(c, tempArray)
-}
 
 // 放处理过的json字符串
 type JsonParams struct {
@@ -38,10 +26,9 @@ func (j *JsonParams) Set(key string, value interface{}) {
 }
 
 /*
-添加任务
+添加或更新任务
 */
 func HandlerAddTask(c *gin.Context) {
-	// nick := c.DefaultPostForm("nick", "anonymous") // 此方法可以设置默认值
 	// 声明map结构
 	var jsonData map[string]interface{}
 	// 解析请求体到map
@@ -56,58 +43,117 @@ func HandlerAddTask(c *gin.Context) {
 		return
 	}
 
-	taskType := jsonData["type"]
-	if taskType == "" {
+	times := jsonData["times"]
+	if times == nil {
 		r.ErrMesage(c, "任务类型不能为空")
 		return
 	}
-	timestr := jsonData["time"]
-	if ok := mycron.Validate(timestr.(string)); !ok {
-		r.ErrMesage(c, "时间表达式错误")
+	workdir := jsonData["workdir"]
+	if workdir == nil {
+		r.ErrMesage(c, "工作目录不能为空")
+		return
+	}
+	exec := jsonData["exec"]
+	if exec == nil {
+		r.ErrMesage(c, "执行命令不能为空")
 		return
 	}
 	jp := &JsonParams{data: ""}
 	jp.Set("name", name)
-	jp.Set("type", taskType)
-	jp.Set("time", timestr)
+	jp.Set("times", jsonData["times"])
+	jp.Set("workdir", jsonData["workdir"])
 	jp.Set("exec", jsonData["exec"])
 	jp.Set("enable", jsonData["enable"])
-	jp.Set("desc", jsonData["desc"])
-	jp.Set("createtime", time.Unix(time.Now().Unix(), 0).Format("2006-01-02 15:04:05"))
+
 	cfg, err := config.ReadConfigFileToJson()
 	if err != nil {
 		log.Println("读取配置文件出错")
 		return
 	}
 
+	// 检查任务是否已存在
+	isUpdate := false
 	result := gjson.Get(cfg.Raw, "task.#.name")
-	for _, isname := range result.Array() {
+	for i, isname := range result.Array() {
 		if isname.String() == name {
-			r.ErrMesage(c, "任务已存在")
-			return
+			isUpdate = true
+			// 更新配置文件
+			jp := &JsonParams{data: cfg.Raw}
+			jp.Set(fmt.Sprintf("task.%v.times", i), times)
+			jp.Set(fmt.Sprintf("task.%v.workdir", i), workdir)
+			jp.Set(fmt.Sprintf("task.%v.exec", i), exec)
+			jp.Set(fmt.Sprintf("task.%v.enable", i), jsonData["enable"])
+			err := os.WriteFile("data/config.json", []byte(jp.data), 0644)
+			if err != nil {
+				r.ErrMesage(c, "更新失败,配置文件写入失败")
+				return
+			}
+			break
 		}
-		println(isname.String())
 	}
 
-	var newObj map[string]interface{}
-	json.Unmarshal([]byte(jp.data), &newObj)
-	value, _ := sjson.Set(cfg.Raw, "task.-1", newObj)
-	err = os.WriteFile("data/config.json", []byte(value), 0644)
-	if err != nil {
-		r.ErrMesage(c, "添加失败,配置文件写入失败")
-		return
+	if !isUpdate {
+		// 添加新任务
+		var newObj map[string]interface{}
+		json.Unmarshal([]byte(jp.data), &newObj)
+		value, _ := sjson.Set(cfg.Raw, "task.-1", newObj)
+		err = os.WriteFile("data/config.json", []byte(value), 0644)
+		if err != nil {
+			r.ErrMesage(c, "添加失败,配置文件写入失败")
+			return
+		}
 	}
-	// 这里可以返回任务列表数据
-	// result := gjson.Parse(value)
-	// var tempArray []interface{}
-	// json.Unmarshal([]byte(result.Get("task").Raw), &tempArray)
-	// r.OkData(c, tempArray)
-	r.OkMesage(c, "添加成功")
+
+	// 如果enable为true，启用任务
+	if enable, ok := jsonData["enable"].(bool); ok && enable {
+		// 先禁用任务（如果存在）
+		for _, e := range mycron.C.Entries() {
+			if taskInfo, exists := mycron.TaskData[e.ID]; exists && taskInfo.Name == name {
+				mycron.C.Remove(e.ID)
+				// 关闭日志文件
+				if file, ok := taskInfo.Writer.(*os.File); ok {
+					file.Close()
+				}
+				// 停止写入日志
+				taskInfo.Log.SetOutput(io.Discard)
+				// 从映射表中删除
+				delete(mycron.TaskData, e.ID)
+			}
+		}
+
+		// 添加到cron
+		TaskData := mycron.TaskInfo{
+			Name: name,
+			Times: func() []string {
+				timesArray, ok := times.([]interface{})
+				if !ok {
+					return []string{}
+				}
+				var result []string
+				for _, t := range timesArray {
+					if str, ok := t.(string); ok {
+						result = append(result, str)
+					}
+				}
+				return result
+			}(),
+			WorkDir: workdir.(string),
+			Exec:    exec.(string),
+			Enable:  true,
+		}
+		mycron.AddRunFunc(TaskData)
+	}
+
+	if isUpdate {
+		r.OkMesage(c, "更新成功")
+	} else {
+		r.OkMesage(c, "添加成功")
+	}
 }
 
 /* 删除任务源 */
 func HandlerDeleteTask(c *gin.Context) {
-	name := c.Query("name") // 是 c.Request.URL.Query().Get("lastname") 的简写
+	name := c.Query("name")
 	if name == "" {
 		r.ErrMesage(c, "任务名称不能为空")
 		return
@@ -121,8 +167,6 @@ func HandlerDeleteTask(c *gin.Context) {
 	for i, isname := range result.Array() {
 		if isname.String() == name {
 			value, _ := sjson.Delete(cfg.Raw, fmt.Sprintf("task.%v", i))
-			println(value)
-			println(fmt.Sprintf("task.%v", i))
 			err := os.WriteFile("data/config.json", []byte(value), 0644)
 			if err != nil {
 				r.ErrMesage(c, "删除失败,配置文件写入失败")
@@ -131,60 +175,16 @@ func HandlerDeleteTask(c *gin.Context) {
 			r.OkMesage(c, "删除成功")
 			return
 		}
-		// println(isname.String())
-		// println(i)
 	}
 	r.ErrMesage(c, "删除失败,任务不存在")
-
 }
 
-/* 修改任务源 */
-func HandlerUpdateTask(c *gin.Context) {
-	// 声明map结构
-	var jsonData map[string]interface{}
-	// 解析请求体到map
-	if err := c.BindJSON(&jsonData); err != nil {
-		r.ErrMesage(c, "请求参数错误")
-		return
-	}
-	name := jsonData["name"] // 是 c.Request.URL.Query().Get("lastname") 的简写
-	time := jsonData["time"]
-	enable := jsonData["enable"]
-	if name == "" || time == "" {
-		r.ErrMesage(c, "参数不能为空")
-		return
-	}
-	cfg, err := config.ReadConfigFileToJson()
-	if err != nil {
-		log.Println("读取配置文件出错")
-		return
-	}
-	jp := &JsonParams{data: cfg.Raw}
-	result := gjson.Get(cfg.Raw, "task.#.name")
-	for i, isname := range result.Array() {
-		if isname.String() == name {
-			jp.Set(fmt.Sprintf("task.%v.time", i), time)
-			jp.Set(fmt.Sprintf("task.%v.enable", i), enable)
-			err := os.WriteFile("data/config.json", []byte(jp.data), 0644)
-			if err != nil {
-				r.ErrMesage(c, "修改失败,配置文件写入失败")
-				return
-			}
-			r.OkMesage(c, "修改成功")
-			return
-		}
-		// println(isname.String())
-		// println(i)
-	}
-	r.ErrMesage(c, "修改失败,任务不存在")
-
-}
-
+/* 校验时间表达式 */
 func Valid(c *gin.Context) {
 	timestr := c.Query("time")
 	if ok := mycron.Validate(timestr); !ok {
-		r.ErrMesage(c, "时间表达式错误")
+		r.ErrMesage(c, "时间表达式格式错误")
 		return
 	}
-	r.OkMesage(c, "表达式格式正确")
+	r.OkMesage(c, "校验成功")
 }

@@ -15,17 +15,20 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type cronEntry struct {
-	ID      string   `json:"id"`
-	Next    string   `json:"next"`
-	Name    string   `json:"name"`
-	Times   []string `json:"times"`
-	WorkDir string   `json:"workdir"`
-	Exec    string   `json:"exec"`
-	Enable  bool     `json:"enable"`
+// TaskInfo 完整的任务信息结构
+type TaskInfo struct {
+	ID      string   `json:"id"`      // 运行时ID
+	Next    string   `json:"next"`    // 下次执行时间
+	Name    string   `json:"name"`    // 任务名称
+	Times   []string `json:"times"`   // 定时表达式
+	WorkDir string   `json:"workdir"` // 工作目录
+	Exec    string   `json:"exec"`    // 执行命令
+	Enable  bool     `json:"enable"`  // 是否启用
+	Status  string   `json:"status"`  // 运行状态：running/stopped
 }
 
-func HandlerRunTaskList(c *gin.Context) {
+// HandlerTaskList 获取所有任务列表（包含运行状态）
+func HandlerTaskList(c *gin.Context) {
 	// 读取配置文件获取所有任务
 	cfg, err := config.ReadConfigFileToJson()
 	if err != nil {
@@ -34,12 +37,18 @@ func HandlerRunTaskList(c *gin.Context) {
 		return
 	}
 
-	var entries []cronEntry
+	var taskList []TaskInfo
 	tasks := cfg.Get("task")
+	
+	// 获取所有运行中任务的映射
+	runningTasks := make(map[string]cron.EntryID)
+	for id, task := range mycron.TaskData {
+		runningTasks[task.Name] = id
+	}
 	
 	// 遍历配置中的所有任务
 	tasks.ForEach(func(key, value gjson.Result) bool {
-		entry := cronEntry{
+		task := TaskInfo{
 			Name:    value.Get("name").String(),
 			Times:   func() []string {
 				var times []string
@@ -51,22 +60,26 @@ func HandlerRunTaskList(c *gin.Context) {
 			WorkDir: value.Get("workdir").String(),
 			Exec:    value.Get("exec").String(),
 			Enable:  value.Get("enable").Bool(),
+			Status:  "stopped", // 默认状态为停止
 		}
 		
-		// 如果任务正在运行，获取下次执行时间
-		for _, e := range mycron.C.Entries() {
-			if taskInfo, exists := mycron.TaskData[e.ID]; exists && taskInfo.Name == entry.Name {
-				entry.ID = strconv.Itoa(int(e.ID))
-				entry.Next = e.Next.String()
-				break
+		// 如果任务正在运行，添加运行时信息
+		if id, exists := runningTasks[task.Name]; exists {
+			for _, entry := range mycron.C.Entries() {
+				if entry.ID == id {
+					task.ID = strconv.Itoa(int(entry.ID))
+					task.Next = entry.Next.Format("2006-01-02 15:04:05")
+					task.Status = "running"
+					break
+				}
 			}
 		}
 		
-		entries = append(entries, entry)
+		taskList = append(taskList, task)
 		return true
 	})
 
-	r.OkData(c, entries)
+	r.OkData(c, taskList)
 }
 
 // 执行任务请求参数
