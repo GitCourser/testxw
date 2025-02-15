@@ -16,7 +16,7 @@ var SystemTask = []TaskInfo{
 		WorkDir: "",
 		Exec:    "",
 		System:  true,
-		Isrun:   "1",
+		Enable:  false,
 	},
 	{
 		Name:    "定时清理日志或者文件",
@@ -24,7 +24,7 @@ var SystemTask = []TaskInfo{
 		WorkDir: "",
 		Exec:    "",
 		System:  true,
-		Isrun:   "1",
+		Enable:  false,
 	},
 	{
 		Name:    "定时检测系统状态",
@@ -32,7 +32,7 @@ var SystemTask = []TaskInfo{
 		WorkDir: "",
 		Exec:    "",
 		System:  true,
-		Isrun:   "2",
+		Enable:  true,
 	},
 }
 
