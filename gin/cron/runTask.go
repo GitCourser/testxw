@@ -88,8 +88,8 @@ func HandlerExecuteTask(c *gin.Context) {
 	logname := fmt.Sprintf("%s-execute.log", req.Name)
 	taskLog, writer := mylog.LogInit(logname)
 	defer func() {
-		if file, ok := writer.(*os.File); ok {
-			file.Close()
+		if f, ok := writer.(io.Closer); ok {
+			f.Close()
 		}
 	}()
 
