@@ -86,12 +86,10 @@ func HandlerExecuteTask(c *gin.Context) {
 
 	// 初始化日志
 	logname := fmt.Sprintf("%s-execute.log", req.Name)
-	taskLog, writer := mylog.LogInit(logname)
-	defer func() {
-		if f, ok := writer.(io.Closer); ok {
-			f.Close()
-		}
-	}()
+	taskLog, file := mylog.LogInit(logname)
+	if file != nil {
+		defer file.Close()
+	}
 
 	// 执行任务
 	go func() {
@@ -193,8 +191,8 @@ func HandlerDisableTask(c *gin.Context) {
 				if taskInfo, exists := mycron.TaskData[e.ID]; exists && taskInfo.Name == name {
 					mycron.C.Remove(e.ID)
 					// 关闭日志文件
-					if f, ok := writer.(io.Closer); ok {
-						f.Close()
+					if file, ok := taskInfo.Writer.(*os.File); ok {
+						file.Close()
 					}
 					// 停止写入日志
 					taskInfo.Log.SetOutput(io.Discard)
