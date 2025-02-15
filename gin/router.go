@@ -65,12 +65,11 @@ func (p *ApiData) Init() {
 
 	routeCron := routeApi.Group("/cron") // 定时任务接口
 	/* 任务源 */
-	routeCron.GET("/alllsit", cron.HandlerAllTaskList) //获取列表
+	routeCron.GET("/list", cron.HandlerTaskList)    //获取任务列表（包含运行状态）
 	routeCron.GET("/delete", cron.HandlerDeleteTask)   //删除源任务
 	routeCron.POST("/add", cron.HandlerAddTask)        //添加任务源
-	routeCron.POST("/update", cron.HandlerUpdateTask)  //校验时间表达式
-	/* 运行中任务 */
-	routeCron.GET("/list", cron.HandlerRunTaskList)    //获取运行中的任务列表
+	routeCron.POST("/update", cron.HandlerAddTask)     //更新任务（复用添加接口）
+	/* 任务控制 */
 	routeCron.GET("/enable", cron.HandlerEnableTask)   //启用任务
 	routeCron.GET("/disable", cron.HandlerDisableTask) //禁用任务
 	routeCron.GET("/valid", cron.Valid)                //校验时间表达式
@@ -96,14 +95,14 @@ func (p *ApiData) Init() {
 	})
 
 	//动态注册插件路由
-	if p.AddApi != nil {
-		for key, value := range p.AddApi {
-			fmt.Println(key, value, 8888)
-			RootRoute.GET(value, func(c *gin.Context) {
-				c.String(http.StatusOK, "Welcome Gin Server")
-			})
-		}
-	}
+	// if p.AddApi != nil {
+	// 	for key, value := range p.AddApi {
+	// 		fmt.Println(key, value, 8888)
+	// 		RootRoute.GET(value, func(c *gin.Context) {
+	// 			c.String(http.StatusOK, "Welcome Gin Server")
+	// 		})
+	// 	}
+	// }
 
 	fmt.Println("This service runs on port :" + p.Port)
 	RootRoute.Run(":" + p.Port)
