@@ -2,7 +2,6 @@ package xuanwu
 
 import (
 	"bufio"
-	"io"
 	"log"
 	"os"
 	"os/exec"
