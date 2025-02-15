@@ -9,6 +9,7 @@ import (
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	mycron "xuanwu/xuanwu"
+	mylog "xuanwu/log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
