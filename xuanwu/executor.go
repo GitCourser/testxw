@@ -2,6 +2,8 @@ package xuanwu
 
 import (
 	"bufio"
+	"bytes"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -9,6 +11,9 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
+	"io/ioutil"
 )
 
 // 处理工作目录路径
@@ -36,6 +41,33 @@ func HandleWorkDir(workDir string) string {
 	}
 	exeDir := filepath.Dir(exePath)
 	return filepath.Join(exeDir, "data", workDir)
+}
+
+// 将GBK编码的文本转换为UTF8
+func convertGBKToUTF8(text string) string {
+	// 如果不是Windows系统,直接返回
+	if runtime.GOOS != "windows" {
+		return text
+	}
+
+	// 创建GBK到UTF8的转换器
+	reader := transform.NewReader(strings.NewReader(text), simplifiedchinese.GBK.NewDecoder())
+	var buf bytes.Buffer
+	_, err := io.Copy(&buf, reader)
+	if err != nil {
+		return text // 如果转换失败,返回原文
+	}
+	return buf.String()
+}
+
+// 创建一个支持编码转换的Scanner
+func newEncodingScanner(reader io.Reader) *bufio.Scanner {
+	if runtime.GOOS == "windows" {
+		// Windows环境下,创建一个GBK到UTF8的转换器
+		utf8Reader := transform.NewReader(reader, simplifiedchinese.GBK.NewDecoder())
+		return bufio.NewScanner(utf8Reader)
+	}
+	return bufio.NewScanner(reader)
 }
 
 // 执行任务命令
@@ -78,7 +110,7 @@ func ExecTask(command string, workDir string, log *log.Logger) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		scanner := bufio.NewScanner(stdout)
+		scanner := newEncodingScanner(stdout)
 		for scanner.Scan() {
 			log.Println(scanner.Text())
 		}
@@ -88,7 +120,7 @@ func ExecTask(command string, workDir string, log *log.Logger) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		scanner := bufio.NewScanner(stderr)
+		scanner := newEncodingScanner(stderr)
 		for scanner.Scan() {
 			log.Println(scanner.Text())
 		}
