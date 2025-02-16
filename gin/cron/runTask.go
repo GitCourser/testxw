@@ -127,7 +127,7 @@ func HandlerExecuteTask(c *gin.Context) {
 				found = true
 				// 初始化日志文件
 				logname := fmt.Sprintf("%s.log", req.Name)
-				taskLog, file := mylog.LogInit(logname)
+				_, file := mylog.LogInit(logname)
 				if file != nil {
 					defer file.Close()
 				}
@@ -158,7 +158,7 @@ func HandlerExecuteTask(c *gin.Context) {
 		// 初始化日志(带时间戳后缀)
 		timestamp := time.Now().Format("20060102150405")
 		logname := fmt.Sprintf("%s-%s.log", req.Name, timestamp)
-		taskLog, file := mylog.LogInit(logname)
+		_, file := mylog.LogInit(logname)
 		if file != nil {
 			defer file.Close()
 		}
