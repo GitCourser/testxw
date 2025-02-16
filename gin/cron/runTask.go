@@ -1,11 +1,13 @@
 package cron
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strconv"
+	"time"
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	mycron "xuanwu/xuanwu"
@@ -85,9 +87,15 @@ func HandlerTaskList(c *gin.Context) {
 
 // 执行任务请求参数
 type executeTaskRequest struct {
-	Name    string `json:"name" binding:"required"`    // 任务名称
-	Exec    string `json:"exec" binding:"required"`    // 执行的命令
-	WorkDir string `json:"workdir" binding:"required"` // 工作目录
+	Name    string `json:"name" binding:"required"` // 任务名称
+	Exec    string `json:"exec"`                    // 执行的命令
+	WorkDir string `json:"workdir"`                 // 工作目录
+}
+
+// 执行任务响应数据
+type executeTaskResponse struct {
+	Message string `json:"message"` // 执行状态信息
+	Output  string `json:"output"`  // 执行输出结果
 }
 
 /* 立即执行任务 */
@@ -98,21 +106,82 @@ func HandlerExecuteTask(c *gin.Context) {
 		return
 	}
 
-	// 初始化日志
-	logname := fmt.Sprintf("%s-execute.log", req.Name)
-	taskLog, file := mylog.LogInit(logname)
-	if file != nil {
-		defer file.Close()
+	// 创建一个内存缓冲区用于收集输出
+	var memLog bytes.Buffer
+	var execErr error
+	var taskOutput string
+
+	// 如果只提供name参数,从任务列表中查找并执行
+	if req.Exec == "" && req.WorkDir == "" {
+		// 读取配置文件获取任务信息
+		cfg, err := config.ReadConfigFileToJson()
+		if err != nil {
+			r.ErrMesage(c, "读取配置文件失败")
+			return
+		}
+
+		found := false
+		tasks := cfg.Get("task")
+		tasks.ForEach(func(key, value gjson.Result) bool {
+			if value.Get("name").String() == req.Name {
+				found = true
+				// 初始化日志文件
+				logname := fmt.Sprintf("%s.log", req.Name)
+				taskLog, file := mylog.LogInit(logname)
+				if file != nil {
+					defer file.Close()
+				}
+
+				// 创建多重输出(同时写入文件和内存)
+				multiWriter := io.MultiWriter(file, &memLog)
+				combinedLog := log.New(multiWriter, "", log.LstdFlags)
+
+				// 同步执行任务
+				execErr = mycron.ExecTask(value.Get("exec").String(), value.Get("workdir").String(), combinedLog)
+				taskOutput = memLog.String()
+				return false
+			}
+			return true
+		})
+
+		if !found {
+			r.ErrMesage(c, "任务不存在")
+			return
+		}
+	} else {
+		// 临时执行模式
+		if req.Exec == "" || req.WorkDir == "" {
+			r.ErrMesage(c, "临时执行模式需要提供exec和workdir参数")
+			return
+		}
+
+		// 初始化日志(带时间戳后缀)
+		timestamp := time.Now().Format("20060102150405")
+		logname := fmt.Sprintf("%s-%s.log", req.Name, timestamp)
+		taskLog, file := mylog.LogInit(logname)
+		if file != nil {
+			defer file.Close()
+		}
+
+		// 创建多重输出
+		multiWriter := io.MultiWriter(file, &memLog)
+		combinedLog := log.New(multiWriter, "", log.LstdFlags)
+
+		// 同步执行任务
+		execErr = mycron.ExecTask(req.Exec, req.WorkDir, combinedLog)
+		taskOutput = memLog.String()
 	}
 
-	// 执行任务
-	go func() {
-		if err := mycron.ExecTask(req.Exec, req.WorkDir, taskLog); err != nil {
-			taskLog.Printf("任务执行失败: %v\n", err)
-		}
-	}()
-	
-	r.OkMesage(c, "任务执行请求已发送")
+	// 准备响应数据
+	response := executeTaskResponse{
+		Message: "任务执行完成",
+		Output:  taskOutput,
+	}
+	if execErr != nil {
+		response.Message = fmt.Sprintf("任务执行失败: %v", execErr)
+	}
+
+	r.OkData(c, response)
 }
 
 /* 启用任务 */
