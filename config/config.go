@@ -11,7 +11,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var Version = "1.1.1"
+var Version = "1.0.0"
 
 // 所有结构数据
 type Tconfig struct{}
@@ -57,7 +57,8 @@ func ReadConfigFileToJson() (gjson.Result, error) {
 		str := fmt.Sprintf(`{
 			"name": "xuanwu",
 			"username":"admin",
-			"password":"21232f297a57a5a743894a0e4a801fc3",
+			"password":"8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+			"cookie_expire_days": 30,
 			"task": []
 		  }`)
 		err := WriteConfigFile(file, []byte(str))
