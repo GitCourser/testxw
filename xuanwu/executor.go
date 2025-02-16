@@ -13,7 +13,6 @@ import (
 	"sync"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
-	"io/ioutil"
 )
 
 // 处理工作目录路径
