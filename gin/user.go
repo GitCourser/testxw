@@ -19,14 +19,12 @@ func (p *ApiData) HandlerUserInfo(c *gin.Context) {
 		return
 	}
 	user := cfg.Get("username").String()
-	email := cfg.Get("email").String()
 	if user == "" { //没有查到用户数据
 		r.ErrMesage(c, "用户名错误")
 		return
 	}
 	r.OkData(c, gin.H{
 		"username": user,
-		"email":    email,
 		"version":  config.Version,
 	})
 }
@@ -70,14 +68,13 @@ func (p *ApiData) HandlerUpdateUserInfo(c *gin.Context) {
 	//定义匿名结构体，字段与json字段对应
 	var req struct {
 		Username string `json:"userName"`
-		Email    string `json:"userEmail"`
 	}
 	//绑定json和结构体
 	if err := c.BindJSON(&req); err != nil {
 		r.ErrMesage(c, "请求参数错误")
 		return
 	}
-	if req.Username == "" || req.Email == "" {
+	if req.Username == "" {
 		r.ErrMesage(c, "参数不能为空")
 		return
 	}
@@ -103,7 +100,6 @@ func (p *ApiData) HandlerUpdateUserInfo(c *gin.Context) {
 	}
 
 	jsonStr, _ := sjson.Set(cfg.Raw, "username", req.Username)
-	jsonStr, _ = sjson.Set(jsonStr, "email", req.Email)
 	err = os.WriteFile("data/config.json", []byte(jsonStr), 0644)
 	if err != nil {
 		r.ErrMesage(c, "修改失败,配置文件写入失败")
