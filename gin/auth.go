@@ -34,6 +34,14 @@ func (p *ApiData) CookieHandler() gin.HandlerFunc {
 						return
 					}
 				}
+				
+				// 检查token是否在黑名单中
+				if lib.GetTokenBlacklist().IsBlacklisted(cookie) {
+					r.AuthMesage(c)
+					c.Abort()
+					return
+				}
+				
 				//解密
 				username, err := lib.DecryptByAes(cookie)
 				if err != nil {
@@ -103,6 +111,14 @@ func (p *ApiData) LoginHandle(c *gin.Context) {
 
 // 清除cookie 退出登录方法
 func (p *ApiData) LogoutHandler(c *gin.Context) {
+	// 获取当前token
+	cookie, err := c.Cookie("cookie")
+	if err == nil {
+		// 将token加入黑名单
+		lib.GetTokenBlacklist().AddToBlacklist(cookie)
+	}
+	
+	// 清除cookie
 	c.SetCookie("cookie", "", -1, "/", "", false, false)
 	data := "退出登录成功"
 	r.OkMesage(c, data)
