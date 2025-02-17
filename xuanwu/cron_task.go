@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	mylog "xuanwu/log"
+	"xuanwu/lib/pathutil"
 
 	"github.com/robfig/cron/v3"
 	"github.com/tidwall/gjson"
@@ -104,17 +105,6 @@ func AddRunFunc(TaskInfo TaskInfo) {
 		
 		// 保存到任务映射表
 		TaskData[id] = TaskInfo
-	}
-}
-
-func OneRunFunc(TaskInfo TaskInfo) {
-	// 初始化日志
-	os.Remove("data/logs/run-task-test.log")
-	log, _ := mylog.LogInit("run-task-test.log")
-	
-	// 执行任务
-	if err := ExecTask(TaskInfo.Exec, TaskInfo.WorkDir, log); err != nil {
-		log.Printf("任务执行失败: %v\n", err)
 	}
 }
 

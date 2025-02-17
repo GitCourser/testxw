@@ -11,14 +11,16 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"xuanwu/lib/pathutil"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 )
 
 // 处理工作目录路径
 func HandleWorkDir(workDir string) string {
+	// 如果工作目录为空,则返回data目录
 	if workDir == "" {
-		return ""
+		return pathutil.GetDataPath("")
 	}
 	
 	// Windows系统检查盘符
@@ -32,14 +34,9 @@ func HandleWorkDir(workDir string) string {
 			return workDir
 		}
 	}
-	
+
 	// 相对路径处理
-	exePath, err := os.Executable()
-	if err != nil {
-		return workDir
-	}
-	exeDir := filepath.Dir(exePath)
-	return filepath.Join(exeDir, "data", workDir)
+	return pathutil.GetDataPath(workDir)
 }
 
 // 将GBK编码的文本转换为UTF8
