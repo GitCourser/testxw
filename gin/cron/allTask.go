@@ -111,8 +111,8 @@ func HandlerAddTask(c *gin.Context) {
 			if taskInfo, exists := mycron.TaskData[e.ID]; exists && taskInfo.Name == name {
 				mycron.C.Remove(e.ID)
 				// 关闭日志文件
-				if file, ok := taskInfo.Writer.(*os.File); ok {
-					file.Close()
+				if taskInfo.Writer != nil {
+					taskInfo.Writer.Close()
 				}
 				// 停止写入日志
 				taskInfo.Log.SetOutput(io.Discard)
