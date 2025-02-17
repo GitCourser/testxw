@@ -10,7 +10,7 @@ import (
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	mycron "xuanwu/xuanwu"
-	mylog "xuanwu/log"
+	xwlog "xuanwu/log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -126,7 +126,7 @@ func HandlerExecuteTask(c *gin.Context) {
 				found = true
 				// 初始化日志文件
 				logname := fmt.Sprintf("%s.log", req.Name)
-				_, file := mylog.LogInit(logname)
+				_, file := xwlog.LogInit(logname)
 				if file != nil {
 					defer file.Close()
 				}
@@ -155,7 +155,7 @@ func HandlerExecuteTask(c *gin.Context) {
 		}
 
 		// 初始化日志
-		_, file := mylog.LogInit("run-temp.log")
+		_, file := xwlog.LogInit("run-temp.log")
 		if file != nil {
 			defer file.Close()
 		}
