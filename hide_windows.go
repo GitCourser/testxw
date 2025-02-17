@@ -2,15 +2,9 @@
 
 package main
 
-import (
-	"flag"
-	"syscall"
-)
+import "syscall"
 
 func init() {
-	hideWindow := flag.Bool("hide", false, "在Windows平台下隐藏命令提示符窗口")
-	flag.Parse()
-	
 	if *hideWindow {
 		kernel32 := syscall.NewLazyDLL("kernel32.dll")
 		proc := kernel32.NewProc("GetConsoleWindow")
