@@ -1,9 +1,5 @@
 package xuanwu
 
-import (
-	"log"
-)
-
 /*
 系统任务
 */
