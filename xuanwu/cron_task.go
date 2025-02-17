@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	mylog "xuanwu/log"
-	"xuanwu/lib/pathutil"
 
 	"github.com/robfig/cron/v3"
 	"github.com/tidwall/gjson"
