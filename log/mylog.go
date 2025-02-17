@@ -20,7 +20,7 @@ func LogInit(name string) (*log.Logger, *os.File) {
 		log.Fatalf("创建日志目录失败: %v", err)
 	}
 
-	_, err = lib.PathFileExists(logPath)
+	_, err = lib.HasDir(logPath)
 	if err != nil {
 		f, err := os.Create(logPath)
 		if err != nil {
