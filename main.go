@@ -24,7 +24,6 @@ func init() {
 }
 
 func main() {
-	// cli.InitFlag()
 	//初始化日志文件
 	_, Writer := mylog.LogInit("main.log")
 	log.SetOutput(Writer) // 设置默认logger
