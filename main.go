@@ -8,7 +8,7 @@ import (
 
 	"xuanwu/config"
 	serve "xuanwu/gin"
-	mylog "xuanwu/log"
+	xwlog "xuanwu/log"
 	"xuanwu/xuanwu"
 )
 
@@ -25,7 +25,7 @@ func init() {
 
 func main() {
 	//初始化日志文件
-	_, Writer := mylog.LogInit("main.log")
+	_, Writer := xwlog.LogInit("main.log")
 	log.SetOutput(Writer) // 设置默认logger
 
 	cfg, err := config.ReadConfigFileToJson()
