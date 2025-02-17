@@ -20,7 +20,7 @@ type TaskInfo struct {
 	WorkDir     string   `json:"workdir"` // 工作目录
 	Exec        string   `json:"exec"`
 	Enable      bool     `json:"enable"` // 是否启用任务
-	Writer      io.Writer
+	Writer      io.WriteCloser
 	Log         *log.Logger
 	System      bool
 	Func        func() // 系统任务函数
