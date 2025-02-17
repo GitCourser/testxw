@@ -72,7 +72,6 @@ func (p *ApiData) Init() {
 	/* 任务控制 */
 	routeCron.GET("/enable", cron.HandlerEnableTask)   //启用任务
 	routeCron.GET("/disable", cron.HandlerDisableTask) //禁用任务
-	routeCron.GET("/valid", cron.Valid)                //校验时间表达式
 	routeCron.POST("/execute", cron.HandlerExecuteTask) //立即执行任务
 	/* 运行日志 */
 	routeCron.GET("/log", cron.HandlerAllLogList)         //获取列表
