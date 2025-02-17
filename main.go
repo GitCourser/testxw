@@ -30,6 +30,11 @@ func init() {
 func main() {
 	flag.Parse()
 
+	// Windows平台特定逻辑
+    if runtime.GOOS == "windows" && *hideWindow {
+        hideConsoleWindow()
+    }
+
 	//初始化日志文件
 	_, Writer := xwlog.LogInit("main.log")
 	log.SetOutput(Writer) // 设置默认logger
