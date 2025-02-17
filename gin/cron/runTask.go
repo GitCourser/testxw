@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"time"
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	mycron "xuanwu/xuanwu"
@@ -150,15 +149,13 @@ func HandlerExecuteTask(c *gin.Context) {
 		}
 	} else {
 		// 临时执行模式
-		if req.Exec == "" || req.WorkDir == "" {
-			r.ErrMesage(c, "临时执行模式需要提供exec和workdir参数")
+		if req.Exec == "" {
+			r.ErrMesage(c, "缺少exec参数")
 			return
 		}
 
-		// 初始化日志(带时间戳后缀)
-		timestamp := time.Now().Format("20060102150405")
-		logname := fmt.Sprintf("%s-%s.log", req.Name, timestamp)
-		_, file := mylog.LogInit(logname)
+		// 初始化日志
+		_, file := mylog.LogInit("run-temp.log")
 		if file != nil {
 			defer file.Close()
 		}
