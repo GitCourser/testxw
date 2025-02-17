@@ -1,11 +1,18 @@
 package xuanwu
 
 import (
-	"fmt"
 	"log"
 	"xuanwu/config"
 	xwlog "xuanwu/log"
 )
+
+var systemLogger *log.Logger
+
+func init() {
+	// 初始化系统日志记录器
+	logger, _ := xwlog.LogInit("main.log")
+	systemLogger = logger
+}
 
 /*
 系统任务
@@ -33,6 +40,9 @@ var SystemTask = []TaskInfo{
 
 // cleanLogsTask 清理过期日志任务
 func cleanLogsTask() {
+	// 记录任务开始
+	systemLogger.Printf("定时清理日志")
+	
 	cfg, err := config.ReadConfigFileToJson()
 	if err != nil {
 		log.Printf("读取配置文件失败: %v", err)
@@ -52,5 +62,5 @@ func cleanLogsTask() {
 
 // 系统测试任务
 func systemTestTask() {
-	fmt.Println("系统测试任务")
+	systemLogger.Printf("系统测试任务")
 }
