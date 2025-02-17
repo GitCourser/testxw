@@ -16,9 +16,6 @@ import (
 // 添加Windows命令行参数
 var hideWindow = flag.Bool("hide", false, "在Windows平台下隐藏命令提示符窗口")
 
-func hideConsoleWindow() {
-}
-
 func init() {
 	if runtime.GOOS == "linux" { //windows上设置时区会报错,不设置也会正常显示,linux日志时间会差8小时
 		TIME_LOCATION, err := time.LoadLocation("Asia/Shanghai")
