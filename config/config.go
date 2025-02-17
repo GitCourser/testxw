@@ -13,33 +13,6 @@ import (
 
 var Version = "1.0.0"
 
-// 所有结构数据
-type Tconfig struct{}
-
-// 读取json配置文件转结构体
-func ReadConfigFile() (*Tconfig, error) {
-	// 配置文件地址修改为在当前程序目录中的data目录下
-	runpath, err := os.Executable()
-	if err != nil {
-		fmt.Println(err)
-	}
-	dir := filepath.Dir(runpath)
-	dataDir := path.Join(dir, "data")
-	file := path.Join(dataDir, "config.json")
-	fmt.Println(file, "config")
-	jsonByte, err := os.ReadFile(file)
-	if err != nil {
-		fmt.Println("配置文件读取失败")
-		return nil, err
-	}
-	var configObj Tconfig
-	if err := json.Unmarshal(jsonByte, &configObj); err != nil {
-		fmt.Println("反序列化配置文件错误>>", err)
-		return nil, err
-	}
-	return &configObj, nil
-}
-
 // 将config文件读取到json字符串
 func ReadConfigFileToJson() (gjson.Result, error) {
 	// 配置文件地址修改为在当前程序目录中的data目录下
