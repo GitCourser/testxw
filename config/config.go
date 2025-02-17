@@ -23,6 +23,7 @@ func ReadConfigFileToJson() (gjson.Result, error) {
 			"username":"admin",
 			"password":"8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
 			"cookie_expire_days": 30,
+			"log_clean_days": 7,
 			"task": []
 		  }`)
 		err := WriteConfigFile(configPath, []byte(str))
