@@ -118,19 +118,6 @@ func OneRunFunc(TaskInfo TaskInfo) {
 	}
 }
 
-/* 校验时间表达式 */
-func Validate(time string) bool {
-	parser := cron.NewParser(cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor)
-	if _, err := parser.Parse(time); err != nil {
-		// 表达式无效
-		fmt.Println("错误")
-		return false
-	} else {
-		fmt.Println("成功")
-		return true
-	}
-}
-
 /* 获取运行中的任务列表 */
 func GetCronList() {
 	entries := C.Entries()

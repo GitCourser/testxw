@@ -1,9 +1,7 @@
 package xuanwu
 
 import (
-	"fmt"
 	"log"
-	"xuanwu/config"
 )
 
 /*
@@ -34,12 +32,4 @@ var SystemTask = []TaskInfo{
 		System:  true,
 		Enable:  true,
 	},
-}
-
-/*
-获取版本号
-*/
-func GetVersion() {
-	data := fmt.Sprintf(`{"code":200,"message":"ok","data":{"version":"%s"}}`, config.Version)
-	log.Println(data)
 }
