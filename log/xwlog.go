@@ -2,11 +2,11 @@ package xwlog
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 	"xuanwu/lib/pathutil"
 )
@@ -34,11 +34,19 @@ func (w *taskLogWriter) Write(p []byte) (n int, err error) {
 	return w.file.Write(p)
 }
 
-func LogInit(name string) (*log.Logger, *os.File) {
+// Close 实现io.Closer接口
+func (w *taskLogWriter) Close() error {
+	if w.file != nil {
+		return w.file.Close()
+	}
+	return nil
+}
+
+func LogInit(name string) (*log.Logger, io.WriteCloser) {
 	return LogInitWithConfig(name, &LogConfig{TaskLogFormat: false})
 }
 
-func LogInitWithConfig(name string, config *LogConfig) (*log.Logger, *os.File) {
+func LogInitWithConfig(name string, config *LogConfig) (*log.Logger, io.WriteCloser) {
 	if name == "" { //没有名称时候,返回空日志
 		return log.New(os.Stdout, "", 0), nil
 	}
@@ -61,7 +69,7 @@ func LogInitWithConfig(name string, config *LogConfig) (*log.Logger, *os.File) {
 		log.Fatal(err)
 	}
 
-	var writer = file
+	var writer io.WriteCloser = file
 	var flags = log.LstdFlags
 
 	if config.TaskLogFormat && name != "main.log" {
@@ -71,7 +79,7 @@ func LogInitWithConfig(name string, config *LogConfig) (*log.Logger, *os.File) {
 	}
 
 	logger := log.New(writer, "", flags)
-	return logger, file
+	return logger, writer
 }
 
 // CleanLogs 清理过期日志
