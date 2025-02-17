@@ -178,13 +178,3 @@ func HandlerDeleteTask(c *gin.Context) {
 	}
 	r.ErrMesage(c, "删除失败,任务不存在")
 }
-
-/* 校验时间表达式 */
-func Valid(c *gin.Context) {
-	timestr := c.Query("time")
-	if ok := mycron.Validate(timestr); !ok {
-		r.ErrMesage(c, "时间表达式格式错误")
-		return
-	}
-	r.OkMesage(c, "校验成功")
-}
