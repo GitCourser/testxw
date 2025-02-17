@@ -1,31 +1,56 @@
 package xuanwu
 
+import (
+	"fmt"
+	"log"
+	"xuanwu/config"
+	xwlog "xuanwu/log"
+)
+
 /*
 系统任务
 */
 var SystemTask = []TaskInfo{
 	{
-		Name:    "每周定时检测更新版本",
-		Times:   []string{},
-		WorkDir: "",
-		Exec:    "",
-		System:  true,
-		Enable:  false,
-	},
-	{
-		Name:    "定时清理日志或者文件",
-		Times:   []string{},
-		WorkDir: "",
-		Exec:    "",
-		System:  true,
-		Enable:  false,
-	},
-	{
-		Name:    "定时检测系统状态",
-		Times:   []string{},
+		Name:    "定时清理日志",
+		Times:   []string{"@daily"}, // 每天0点执行
 		WorkDir: "",
 		Exec:    "",
 		System:  true,
 		Enable:  true,
+		Func:    cleanLogsTask,
 	},
+	{
+		Name:    "系统测试任务",
+		Times:   []string{"@every 30s"},
+		WorkDir: "",
+		Exec:    "",
+		System:  true,
+		Enable:  true,
+		Func:    systemTestTask,
+	},
+}
+
+// cleanLogsTask 清理过期日志任务
+func cleanLogsTask() {
+	cfg, err := config.ReadConfigFileToJson()
+	if err != nil {
+		log.Printf("读取配置文件失败: %v", err)
+		return
+	}
+
+	cleanDays := cfg.Get("log_clean_days").Int()
+	if cleanDays <= 0 {
+		cleanDays = 7 // 默认7天
+	}
+
+	if err := xwlog.CleanLogs(int(cleanDays)); err != nil {
+		log.Printf("清理日志失败: %v", err)
+		return
+	}
+}
+
+// 系统测试任务
+func systemTestTask() {
+	fmt.Println("系统测试任务")
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	mylog "xuanwu/log"
+	xwlog "xuanwu/log"
 
 	"github.com/robfig/cron/v3"
 	"github.com/tidwall/gjson"
@@ -83,18 +83,27 @@ func AddRunFunc(TaskInfo TaskInfo) {
 	}
 	
 	// 初始化日志
-	log, writer := mylog.LogInit(logname)
+	log, writer := xwlog.LogInitWithConfig(logname, &xwlog.LogConfig{TaskLogFormat: true})
 	TaskInfo.Writer = writer
 	TaskInfo.Log = log
 	
 	// 遍历时间数组,为每个时间创建定时任务
 	for _, timeStr := range TaskInfo.Times {
 		// 添加定时任务
-		id, err := C.AddFunc(timeStr, func() {
-			if err := ExecTask(TaskInfo.Exec, TaskInfo.WorkDir, log); err != nil {
-				log.Printf("任务执行失败: %v\n", err)
-			}
-		})
+		var id cron.EntryID
+		var err error
+		
+		if TaskInfo.System && TaskInfo.Func != nil {
+			// 系统任务使用自定义函数
+			id, err = C.AddFunc(timeStr, TaskInfo.Func)
+		} else {
+			// 普通任务执行命令
+			id, err = C.AddFunc(timeStr, func() {
+				if err := ExecTask(TaskInfo.Exec, TaskInfo.WorkDir, log); err != nil {
+					log.Printf("任务执行失败: %v\n", err)
+				}
+			})
+		}
 		
 		if err != nil {
 			log.Printf("添加定时任务失败[%s]: %v\n", timeStr, err)
