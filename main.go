@@ -31,13 +31,6 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
-
-	// Windows平台特定逻辑
-	if runtime.GOOS == "windows" && *hideWindow {
-		hideConsoleWindow()
-	}
-
 	// 监听系统信号
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
@@ -47,7 +40,12 @@ func main() {
 		log.Println("玄武系统退出")
 	}()
 
-	<-sigChan
+	flag.Parse()
+
+	// Windows平台特定逻辑
+	if runtime.GOOS == "windows" && *hideWindow {
+		hideConsoleWindow()
+	}
 
 	//初始化日志文件
 	_, Writer := xwlog.LogInit("main.log")
@@ -66,4 +64,6 @@ func main() {
 	go serve.InitApi(cfg, nil)
 	//初始化定时任务
 	xuanwu.CronInit(cfg)
+
+	<-sigChan
 }
