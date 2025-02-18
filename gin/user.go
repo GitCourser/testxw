@@ -6,7 +6,7 @@ import (
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	"xuanwu/lib"
-	"xuanwu/pathutil"
+	"xuanwu/lib/pathutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/sjson"
