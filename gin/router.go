@@ -37,9 +37,7 @@ func (p *ApiData) Init() {
 	gin.SetMode(gin.ReleaseMode) // 关闭gin启动时路由打印
 	RootRoute := gin.Default()
 	p.RootRoute = RootRoute
-	// RootRoute.Use(installHandler()) //使用中间件进行全局用户认证
-	// RootRoute.Use(Cors())
-	RootRoute.Use(p.CookieHandler()) //使用中间件进行全局用户认证
+	RootRoute.Use(p.CookieHandler()) //进行全局用户认证
 
 	routeApi := RootRoute.Group("/api") //  api接口总路由
 	filesys, err := static.StaticFS()
@@ -56,10 +54,6 @@ func (p *ApiData) Init() {
 	routeAuth := routeApi.Group("/auth") // 用户数据接口
 	routeAuth.POST("/login", p.LoginHandle)
 	routeAuth.GET("/logout", p.LogoutHandler)
-
-	// routeSystem := routeApi.Group("/system") // 系统配置接口
-	// routeSystem.GET("/admin", p.AtestHandle)
-	// routeSystem.GET("/info", p.AtestHandle)
 
 	routeCron := routeApi.Group("/cron") // 定时任务接口
 	/* 任务源 */
