@@ -8,15 +8,15 @@ import (
 )
 
 var (
-	systemLogger *log.Logger
+	// systemLogger *log.Logger
 	logCleanDays = 7 // 默认7天
 	logCleanLock sync.RWMutex
 )
 
 func init() {
 	// 初始化系统日志记录器
-	logger, _ := xwlog.LogInit("main.log")
-	systemLogger = logger
+	// logger, _ := xwlog.LogInit("main.log")
+	// systemLogger = logger
 
 	// 初始化日志清理天数
 	if cfg, err := config.ReadConfigFileToJson(); err == nil {
@@ -37,6 +37,15 @@ var SystemTask = []TaskInfo{
 		Enable:  true,
 		Func:    cleanLogsTask,
 	},
+	{
+		Name:    "系统测试任务",
+		Times:   []string{"@every 30s"},
+		WorkDir: "",
+		Exec:    "",
+		System:  true,
+		Enable:  true,
+		Func:    systemTestTask,
+	},
 }
 
 // UpdateLogCleanDays 更新日志清理天数
@@ -52,7 +61,7 @@ func UpdateLogCleanDays(days int) {
 // cleanLogsTask 清理过期日志任务
 func cleanLogsTask() {
 	// 记录任务开始
-	systemLogger.Printf("定时清理日志")
+	log.Printf("定时清理日志")
 	
 	// 使用当前的清理天数
 	logCleanLock.RLock()
@@ -60,7 +69,12 @@ func cleanLogsTask() {
 	logCleanLock.RUnlock()
 
 	if err := xwlog.CleanLogs(days); err != nil {
-		systemLogger.Printf("清理日志失败: %v", err)
+		log.Printf("清理日志失败: %v", err)
 		return
 	}
+}
+
+// systemTestTask 系统测试任务
+func systemTestTask() {
+	log.Printf("系统测试任务")
 }
