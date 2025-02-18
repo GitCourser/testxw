@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
@@ -38,6 +39,8 @@ func main() {
 	// 退出时执行
 	defer func() {
 		log.Println("玄武系统退出")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
 	}()
 
 	flag.Parse()
@@ -63,7 +66,7 @@ func main() {
 	//初始化web服务 传递端口
 	go serve.InitApi(cfg, nil)
 	//初始化定时任务
-	xuanwu.CronInit(cfg)
+	go xuanwu.CronInit(cfg)
 
 	<-sigChan
 }
