@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	"xuanwu/lib/pathutil"
