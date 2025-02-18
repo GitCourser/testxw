@@ -1,6 +1,8 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -45,6 +47,13 @@ func WriteConfigFile(filePath string, data []byte) error {
 		return err
 	}
 
+	// 解析JSON以验证格式
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, data, "", "    "); err != nil {
+		fmt.Println("JSON格式化失败")
+		return err
+	}
+
 	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		fmt.Println("config文件打开失败")
@@ -52,7 +61,7 @@ func WriteConfigFile(filePath string, data []byte) error {
 	}
 	defer f.Close()
 
-	_, err = f.Write(data)
+	_, err = f.Write(prettyJSON.Bytes())
 	if err != nil {
 		fmt.Println("config文件写入失败")
 		return err
