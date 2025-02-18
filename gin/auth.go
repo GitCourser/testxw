@@ -5,12 +5,24 @@ import (
 	"net/http"
 	"strings"
 	"time"
-	"xuanwu/config"
 	r "xuanwu/gin/response"
 	"xuanwu/lib"
 
 	"github.com/gin-gonic/gin"
 )
+
+// ClearUserToken 清除用户token
+func (p *ApiData) ClearUserToken(c *gin.Context) {
+	// 获取当前token
+	cookie, err := c.Cookie("cookie")
+	if err == nil {
+		// 将token加入黑名单
+		lib.GetTokenBlacklist().AddToBlacklist(cookie)
+	}
+	
+	// 清除cookie
+	c.SetCookie("cookie", "", -1, "/", "", false, false)
+}
 
 func (p *ApiData) CookieHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -89,37 +101,20 @@ func (p *ApiData) LoginHandle(c *gin.Context) {
 	//加密
 	str, _ := lib.EncryptByAes([]byte(tokenStr))
 	
-	// 从配置获取cookie过期时间
-	cfg, err := config.ReadConfigFileToJson()
-	if err != nil {
-		r.ErrMesage(c, "读取配置失败")
-		return
-	}
-	expireDays := cfg.Get("cookie_expire_days").Int()
-	if expireDays <= 0 {
-		expireDays = 30 // 默认30天
-	}
+	// 使用全局配置的Cookie过期时间
+	expireSeconds := GetCookieExpireDays() * 24 * 60 * 60
 	
 	//设置cookie
-	c.SetCookie("cookie", str, int(expireDays*24*60*60), "/", "", false, false)
+	c.SetCookie("cookie", str, expireSeconds, "/", "", false, false)
 	
 	r.OkMesageData(c, "登录成功", gin.H{
 		"token":  str,
-		"maxAge": expireDays * 24 * 60 * 60,
+		"maxAge": expireSeconds,
 	})
 }
 
-// 清除cookie 退出登录方法
+// 退出登录方法
 func (p *ApiData) LogoutHandler(c *gin.Context) {
-	// 获取当前token
-	cookie, err := c.Cookie("cookie")
-	if err == nil {
-		// 将token加入黑名单
-		lib.GetTokenBlacklist().AddToBlacklist(cookie)
-	}
-	
-	// 清除cookie
-	c.SetCookie("cookie", "", -1, "/", "", false, false)
-	data := "退出登录成功"
-	r.OkMesage(c, data)
+	p.ClearUserToken(c)
+	r.OkMesage(c, "退出登录成功")
 }

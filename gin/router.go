@@ -50,18 +50,16 @@ func (p *ApiData) Init() {
 	RootRoute.StaticFS("/admin", http.FS(filesys))
 
 	routeAdmin := routeApi.Group("/user") // 用户数据接口
-	routeAdmin.GET("/info", p.HandlerUserInfo)
-	routeAdmin.GET("/list", p.AtestHandle)
-	routeAdmin.POST("/update", p.HandlerUpdateUserInfo)
-	routeAdmin.POST("/updatepass", p.HandlerUpdatePass)
+	routeAdmin.GET("/profile", p.HandlerGetUserProfile)    // 获取用户配置
+	routeAdmin.POST("/profile", p.HandlerUpdateUserProfile) // 更新用户配置
 
 	routeAuth := routeApi.Group("/auth") // 用户数据接口
 	routeAuth.POST("/login", p.LoginHandle)
 	routeAuth.GET("/logout", p.LogoutHandler)
 
-	routeSystem := routeApi.Group("/system") // 系统配置接口
-	routeSystem.GET("/admin", p.AtestHandle)
-	routeSystem.GET("/info", p.AtestHandle)
+	// routeSystem := routeApi.Group("/system") // 系统配置接口
+	// routeSystem.GET("/admin", p.AtestHandle)
+	// routeSystem.GET("/info", p.AtestHandle)
 
 	routeCron := routeApi.Group("/cron") // 定时任务接口
 	/* 任务源 */
@@ -93,16 +91,6 @@ func (p *ApiData) Init() {
 		c.Writer.Flush()
 	})
 
-	//动态注册插件路由
-	// if p.AddApi != nil {
-	// 	for key, value := range p.AddApi {
-	// 		fmt.Println(key, value, 8888)
-	// 		RootRoute.GET(value, func(c *gin.Context) {
-	// 			c.String(http.StatusOK, "Welcome Gin Server")
-	// 		})
-	// 	}
-	// }
-
-	fmt.Println("This service runs on port :" + p.Port)
+	fmt.Println("Web管理端口：" + p.Port)
 	RootRoute.Run(":" + p.Port)
 }
