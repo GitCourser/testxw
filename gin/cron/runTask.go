@@ -126,7 +126,7 @@ func HandlerExecuteTask(c *gin.Context) {
 				found = true
 				// 初始化日志文件
 				logname := fmt.Sprintf("%s.log", req.Name)
-				logger, file := xwlog.LogInitWithConfig(logname, &xwlog.LogConfig{TaskLogFormat: true})
+				_, file := xwlog.LogInitWithConfig(logname, &xwlog.LogConfig{TaskLogFormat: true})
 				if file != nil {
 					defer file.Close()
 				}
@@ -155,7 +155,7 @@ func HandlerExecuteTask(c *gin.Context) {
 		}
 
 		// 初始化日志
-		logger, file := xwlog.LogInitWithConfig("run_temp.log", &xwlog.LogConfig{TaskLogFormat: true})
+		_, file := xwlog.LogInitWithConfig("run_temp.log", &xwlog.LogConfig{TaskLogFormat: true})
 		if file != nil {
 			defer file.Close()
 		}
