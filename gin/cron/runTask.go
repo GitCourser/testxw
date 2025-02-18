@@ -126,14 +126,14 @@ func HandlerExecuteTask(c *gin.Context) {
 				found = true
 				// 初始化日志文件
 				logname := fmt.Sprintf("%s.log", req.Name)
-				_, file := xwlog.LogInit(logname)
+				logger, file := xwlog.LogInitWithConfig(logname, &xwlog.LogConfig{TaskLogFormat: true})
 				if file != nil {
 					defer file.Close()
 				}
 
 				// 创建多重输出(同时写入文件和内存)
 				multiWriter := io.MultiWriter(file, &memLog)
-				combinedLog := log.New(multiWriter, "", log.LstdFlags)
+				combinedLog := log.New(multiWriter, "", 0)
 
 				// 同步执行任务
 				execErr = mycron.ExecTask(value.Get("exec").String(), value.Get("workdir").String(), combinedLog)
@@ -155,14 +155,14 @@ func HandlerExecuteTask(c *gin.Context) {
 		}
 
 		// 初始化日志
-		_, file := xwlog.LogInit("run-temp.log")
+		logger, file := xwlog.LogInitWithConfig("run_temp.log", &xwlog.LogConfig{TaskLogFormat: true})
 		if file != nil {
 			defer file.Close()
 		}
 
 		// 创建多重输出
 		multiWriter := io.MultiWriter(file, &memLog)
-		combinedLog := log.New(multiWriter, "", log.LstdFlags)
+		combinedLog := log.New(multiWriter, "", 0)
 
 		// 同步执行任务
 		execErr = mycron.ExecTask(req.Exec, req.WorkDir, combinedLog)
