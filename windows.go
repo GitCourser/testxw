@@ -17,7 +17,7 @@ func hideConsoleWindow() {
 	// 释放控制台
 	kernel32 := syscall.NewLazyDLL("kernel32.dll")
 	freeConsole := kernel32.NewProc("FreeConsole")
-	ret, _, _ := freeConsole.Call()
+	_, _, _ := freeConsole.Call()
 
 	// 隐藏窗口
 	// getConsoleWindow := kernel32.NewProc("GetConsoleWindow")
