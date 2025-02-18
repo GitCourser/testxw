@@ -31,7 +31,7 @@ func main() {
 	flag.Parse()
 
 	// Windows平台特定逻辑
-    if runtime.GOOS == "windows" {
+    if runtime.GOOS == "windows" && *hideWindow {
         hideConsoleWindow()
     }
 
