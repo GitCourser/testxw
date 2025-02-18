@@ -2,7 +2,6 @@ package serve
 
 import (
 	"log"
-	"os"
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	"xuanwu/lib"
