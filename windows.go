@@ -5,7 +5,7 @@ package main
 import (
 	"log"
 	"syscall"
-	"unsafe"
+	// "unsafe"
 )
 
 func hideConsoleWindow() {
@@ -32,8 +32,8 @@ func hideConsoleWindow() {
 	}
 
 	// 修改控制台标题（可选）
-	_, _, _ = syscall.SyscallN(
-		kernel32.NewProc("SetConsoleTitleW").Addr,
-		uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr("XuanWu Background Service"))),
-	)
+	// _, _, _ = syscall.SyscallN(
+	// 	kernel32.NewProc("SetConsoleTitleW").Addr,
+	// 	uintptr(unsafe.Pointer(syscall.StringToUTF16Ptr("XuanWu Background Service"))),
+	// )
 }
