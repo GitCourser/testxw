@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"runtime"
 	"time"
 
@@ -31,9 +32,11 @@ func main() {
 	flag.Parse()
 
 	// Windows平台特定逻辑
-    if runtime.GOOS == "windows" && *hideWindow {
-        hideConsoleWindow()
-    }
+	if runtime.GOOS == "windows" && *hideWindow {
+		os.Stdout = Writer
+		os.Stderr = Writer
+		hideConsoleWindow()
+	}
 
 	//初始化日志文件
 	_, Writer := xwlog.LogInit("main.log")
