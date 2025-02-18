@@ -106,11 +106,10 @@ func (p *ApiData) HandlerGetUserProfile(c *gin.Context) {
 func (p *ApiData) HandlerUpdateUserProfile(c *gin.Context) {
 	// 先解析为map检查参数名
 	var rawMap map[string]interface{}
-	if err := json.NewDecoder(c.Request.Body).Decode(&rawMap); err != nil {
+	if err := c.ShouldBindJSON(&rawMap); err != nil {
 		r.ErrMesage(c, "请求参数错误")
 		return
 	}
-	c.Request.Body.Close()
 
 	// 有效的参数名集合
 	validParams := map[string]bool{
@@ -132,7 +131,8 @@ func (p *ApiData) HandlerUpdateUserProfile(c *gin.Context) {
 
 	// 解析为结构体
 	var req UserProfile
-	if err := json.Unmarshal(c.Request.GetRawData(), &req); err != nil {
+	jsonData, _ := json.Marshal(rawMap)
+	if err := json.Unmarshal(jsonData, &req); err != nil {
 		r.ErrMesage(c, "请求参数错误")
 		return
 	}
