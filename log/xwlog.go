@@ -21,30 +21,30 @@ type LogConfig struct {
 // 自定义日志写入器
 type taskLogWriter struct {
 	file     *os.File
-	lastTime time.Time // 记录上次写入时间
+	// lastTime time.Time // 记录上次写入时间
 }
 
 func (w *taskLogWriter) Write(p []byte) (n int, err error) {
 	now := time.Now()
 	
 	// 如果不是首次写入，且与上次写入不是同一次任务执行（间隔超过1秒）
-	if !w.lastTime.IsZero() && now.Sub(w.lastTime).Seconds() > 1 {
-		// 添加空行分隔
-		if _, err := w.file.WriteString("\n"); err != nil {
-			return 0, err
-		}
+	// if !w.lastTime.IsZero() && now.Sub(w.lastTime).Seconds() > 1 {
+	// 添加空行分隔
+	if _, err := w.file.WriteString("\n"); err != nil {
+		return 0, err
 	}
+	// }
 	
 	// 如果是新的任务执行（lastTime为零或与当前时间相差超过1秒）
-	if w.lastTime.IsZero() || now.Sub(w.lastTime).Seconds() > 1 {
-		// 写入时间头
-		timeHeader := now.Format("2006-01-02 15:04:05") + "\n"
-		if _, err := w.file.WriteString(timeHeader); err != nil {
-			return 0, err
-		}
+	// if w.lastTime.IsZero() || now.Sub(w.lastTime).Seconds() > 1 {
+	// 写入时间头
+	timeHeader := now.Format("2006-01-02 15:04:05") + "\n"
+	if _, err := w.file.WriteString(timeHeader); err != nil {
+		return 0, err
 	}
+	// }
 	
-	w.lastTime = now
+	// w.lastTime = now
 	return w.file.Write(p)
 }
 
