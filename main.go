@@ -47,6 +47,8 @@ func main() {
 		log.Println("玄武系统退出")
 	}()
 
+	<-sigChan
+
 	//初始化日志文件
 	_, Writer := xwlog.LogInit("main.log")
 	log.SetOutput(Writer) // 设置默认logger
@@ -57,13 +59,11 @@ func main() {
 		return
 	}
 	fmt.Println(time.Now())
-	fmt.Println("按 Ctrl+C 退出")
+	fmt.Println("玄武启动，按 Ctrl+C 退出")
 	log.Println("玄武系统启动")
 
 	//初始化web服务 传递端口
 	go serve.InitApi(cfg, nil)
 	//初始化定时任务
 	xuanwu.CronInit(cfg)
-
-	<-sigChan
 }
