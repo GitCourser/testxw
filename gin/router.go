@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"xuanwu/gin"
 	"xuanwu/gin/cron"
 	"xuanwu/static"
 
@@ -69,14 +68,14 @@ func (p *ApiData) Init() {
 
 	// 文件管理接口
 	routeFile := routeApi.Group("/file")
-	routeFile.GET("/list", gin.HandlerFileList)       // 获取文件列表
-	routeFile.POST("/upload", gin.HandlerFileUpload)  // 上传文件
-	routeFile.POST("/batch-upload", gin.HandlerBatchUpload) // 批量上传文件
-	routeFile.POST("/mkdir", gin.HandlerMkdir)       // 创建文件夹
-	routeFile.GET("/download", gin.HandlerFileDownload) // 下载文件
-	routeFile.GET("/content", gin.HandlerFileContent) // 获取文件内容
-	routeFile.POST("/edit", gin.HandlerFileEdit)     // 编辑文件
-	routeFile.GET("/delete", gin.HandlerFileDelete)  // 删除文件
+	routeFile.GET("/list", HandlerFileList)       // 获取文件列表
+	routeFile.POST("/upload", HandlerFileUpload)  // 上传文件
+	routeFile.POST("/batch-upload", HandlerBatchUpload) // 批量上传文件
+	routeFile.POST("/mkdir", HandlerMkdir)       // 创建文件夹
+	routeFile.GET("/download", HandlerFileDownload) // 下载文件
+	routeFile.GET("/content", HandlerFileContent) // 获取文件内容
+	routeFile.POST("/edit", HandlerFileEdit)     // 编辑文件
+	routeFile.GET("/delete", HandlerFileDelete)  // 删除文件
 
 	// 关键点【解决页面刷新404的问题】
 	RootRoute.NoRoute(func(c *gin.Context) {
