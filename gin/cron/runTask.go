@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"xuanwu/config"
 	r "xuanwu/gin/response"
+	"xuanwu/lib/pathutil"
 	mycron "xuanwu/xuanwu"
 	xwlog "xuanwu/log"
 
@@ -204,7 +205,8 @@ func HandlerEnableTask(c *gin.Context) {
 			// 更新配置文件
 			jp := &JsonParams{data: cfg.Raw}
 			jp.Set(fmt.Sprintf("task.%v.enable", i), true)
-			err := os.WriteFile("data/config.json", []byte(jp.data), 0644)
+			configPath := pathutil.GetDataPath("config.json")
+			err := config.WriteConfigFile(configPath, []byte(jp.data))
 			if err != nil {
 				r.ErrMesage(c, "启用失败,配置文件写入失败")
 				return
@@ -260,7 +262,8 @@ func HandlerDisableTask(c *gin.Context) {
 			// 更新配置文件
 			jp := &JsonParams{data: cfg.Raw}
 			jp.Set(fmt.Sprintf("task.%v.enable", i), false)
-			err := os.WriteFile("data/config.json", []byte(jp.data), 0644)
+			configPath := pathutil.GetDataPath("config.json")
+			err := config.WriteConfigFile(configPath, []byte(jp.data))
 			if err != nil {
 				r.ErrMesage(c, "禁用失败,配置文件写入失败")
 				return
