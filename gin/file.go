@@ -1,7 +1,6 @@
 package serve
 
 import (
-	"encoding/json"
 	"io"
 	"math"
 	"os"
