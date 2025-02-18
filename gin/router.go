@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"xuanwu/gin"
 	"xuanwu/gin/cron"
 	"xuanwu/static"
 
@@ -37,7 +38,7 @@ func (p *ApiData) Init() {
 	gin.SetMode(gin.ReleaseMode) // 关闭gin启动时路由打印
 	RootRoute := gin.Default()
 	p.RootRoute = RootRoute
-	RootRoute.Use(p.CookieHandler()) //进行全局用户认证
+	RootRoute.Use(p.CookieHandler()) //全局用户认证
 
 	routeApi := RootRoute.Group("/api") //  api接口总路由
 	filesys, err := static.StaticFS()
@@ -65,12 +66,17 @@ func (p *ApiData) Init() {
 	routeCron.GET("/enable", cron.HandlerEnableTask)   //启用任务
 	routeCron.GET("/disable", cron.HandlerDisableTask) //禁用任务
 	routeCron.POST("/execute", cron.HandlerExecuteTask) //立即执行任务
-	/* 运行日志 */
-	routeCron.GET("/log", cron.HandlerAllLogList)         //获取列表
-	routeCron.GET("/dellog", cron.HandlerDeleteLog)       //删除日志
-	routeCron.GET("/dellogall", cron.HandlerDeleteAllLog) //删除日志
-	routeCron.GET("/getlog", cron.HandlerGetLog)          //获取日志
-	routeCron.GET("/downlog", cron.HandlerDownloadFile)   //获取日志
+
+	// 文件管理接口
+	routeFile := routeApi.Group("/file")
+	routeFile.GET("/list", gin.HandlerFileList)       // 获取文件列表
+	routeFile.POST("/upload", gin.HandlerFileUpload)  // 上传文件
+	routeFile.POST("/batch-upload", gin.HandlerBatchUpload) // 批量上传文件
+	routeFile.POST("/mkdir", gin.HandlerMkdir)       // 创建文件夹
+	routeFile.GET("/download", gin.HandlerFileDownload) // 下载文件
+	routeFile.GET("/content", gin.HandlerFileContent) // 获取文件内容
+	routeFile.POST("/edit", gin.HandlerFileEdit)     // 编辑文件
+	routeFile.GET("/delete", gin.HandlerFileDelete)  // 删除文件
 
 	// 关键点【解决页面刷新404的问题】
 	RootRoute.NoRoute(func(c *gin.Context) {
@@ -85,6 +91,6 @@ func (p *ApiData) Init() {
 		c.Writer.Flush()
 	})
 
-	fmt.Println("Web管理端口：" + p.Port)
+	fmt.Println("Web 端口：" + p.Port)
 	RootRoute.Run(":" + p.Port)
 }
