@@ -4,7 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 	"time"
 
 	"xuanwu/config"
@@ -35,6 +38,15 @@ func main() {
 		hideConsoleWindow()
 	}
 
+	// 监听系统信号
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	// 退出时执行
+	defer func() {
+		log.Println("玄武系统退出")
+	}()
+
 	//初始化日志文件
 	_, Writer := xwlog.LogInit("main.log")
 	log.SetOutput(Writer) // 设置默认logger
@@ -45,10 +57,13 @@ func main() {
 		return
 	}
 	fmt.Println(time.Now())
-	log.Println("系统main启动")
+	fmt.Println("按 Ctrl+C 退出")
+	log.Println("玄武系统启动")
 
 	//初始化web服务 传递端口
 	go serve.InitApi(cfg, nil)
 	//初始化定时任务
 	xuanwu.CronInit(cfg)
+
+	<-sigChan
 }
