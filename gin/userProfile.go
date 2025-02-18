@@ -21,6 +21,12 @@ type UserProfile struct {
 	LogCleanDays     int    `json:"log_clean_days,omitempty"`     // 日志清理天数
 }
 
+// UserInfo 用户基本信息
+type UserInfo struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // 全局配置缓存
 var (
 	globalCookieExpireDays = 30 // 默认30天
@@ -51,6 +57,23 @@ func GetCookieExpireDays() int {
 // GetLogCleanDays 获取当前日志清理天数
 func GetLogCleanDays() int {
 	return globalLogCleanDays
+}
+
+/* 从json文件中获取用户信息 公共方法 */
+func GetUserInfo() UserInfo {
+	cfg, err := config.ReadConfigFileToJson()
+	if err != nil {
+		log.Println("读取配置文件出错")
+		return UserInfo{}
+	}
+	userInfo := UserInfo{
+		Username: cfg.Get("username").String(),
+		Password: cfg.Get("password").String(),
+	}
+	if userInfo.Username == "" { //没有查到用户数据
+		return UserInfo{}
+	}
+	return userInfo
 }
 
 // HandlerGetUserProfile 获取用户配置
