@@ -1,12 +1,14 @@
 package xwlog
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"time"
 	"xuanwu/lib/pathutil"
 )
@@ -94,7 +96,7 @@ func LogInitWithConfig(name string, config *LogConfig) (*log.Logger, io.WriteClo
 	return logger, writer
 }
 
-// CleanLogs 清理过期日志
+// CleanLogs 清理过期日志内容
 func CleanLogs(cleanDays int) error {
 	if cleanDays <= 0 {
 		return fmt.Errorf("清理天数必须大于0")
@@ -107,6 +109,10 @@ func CleanLogs(cleanDays int) error {
 	}
 
 	cutoffTime := time.Now().AddDate(0, 0, -cleanDays)
+	// 匹配日期格式的正则表达式
+	dateRegex := regexp.MustCompile(`\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}`)
+	// 匹配分隔符的正则表达式（空行后跟日期）
+	splitRegex := regexp.MustCompile(`\n\n(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\n)`)
 	
 	for _, file := range files {
 		// 跳过main.log
@@ -115,19 +121,68 @@ func CleanLogs(cleanDays int) error {
 		}
 
 		filePath := filepath.Join(logDir, file.Name())
-		fileInfo, err := os.Stat(filePath)
+		content, err := ioutil.ReadFile(filePath)
 		if err != nil {
-			log.Printf("获取文件信息失败[%s]: %v", file.Name(), err)
+			log.Printf("读取文件失败[%s]: %v", file.Name(), err)
 			continue
 		}
 
-		// 如果文件修改时间早于截止时间，删除文件
-		if fileInfo.ModTime().Before(cutoffTime) {
-			if err := os.Remove(filePath); err != nil {
-				log.Printf("删除文件失败[%s]: %v", file.Name(), err)
+		// 确保内容以日期开头
+		if !dateRegex.Match(content[:19]) {
+			continue
+		}
+
+		// 分割日志块
+		// 先在分隔位置插入特殊标记
+		markedContent := splitRegex.ReplaceAll(content, []byte("<<SPLIT>>\n$1"))
+		// 然后按特殊标记分割
+		blocks := bytes.Split(markedContent, []byte("<<SPLIT>>"))
+		
+		var newBlocks [][]byte
+		var hasExpired bool
+
+		for _, block := range blocks {
+			if len(block) == 0 {
 				continue
 			}
-			log.Printf("已删除过期日志: %s", file.Name())
+
+			// 获取日志块的第一行（时间）
+			timeStr := string(block[:19]) // 日期格式固定为19个字符
+			
+			// 解析时间
+			logTime, err := time.Parse("2006-01-02 15:04:05", timeStr)
+			if err != nil {
+				// 如果解析失败，保留该块
+				newBlocks = append(newBlocks, block)
+				continue
+			}
+
+			// 检查是否过期
+			if logTime.Before(cutoffTime) {
+				hasExpired = true
+				continue
+			}
+
+			newBlocks = append(newBlocks, block)
+		}
+
+		// 如果有过期内容，写入新内容
+		if hasExpired {
+			// 组合新内容
+			var newContent []byte
+			for i, block := range newBlocks {
+				if i > 0 {
+					newContent = append(newContent, '\n', '\n')
+				}
+				newContent = append(newContent, block...)
+			}
+
+			// 写入文件
+			if err := ioutil.WriteFile(filePath, newContent, 0644); err != nil {
+				log.Printf("写入文件失败[%s]: %v", file.Name(), err)
+				continue
+			}
+			log.Printf("已清理过期日志内容: %s", file.Name())
 		}
 	}
 
