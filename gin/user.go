@@ -6,6 +6,7 @@ import (
 	"xuanwu/config"
 	r "xuanwu/gin/response"
 	"xuanwu/lib"
+	"xuanwu/pathutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/sjson"
@@ -100,7 +101,8 @@ func (p *ApiData) HandlerUpdateUserInfo(c *gin.Context) {
 	}
 
 	jsonStr, _ := sjson.Set(cfg.Raw, "username", req.Username)
-	err = os.WriteFile("data/config.json", []byte(jsonStr), 0644)
+	configPath := pathutil.GetDataPath("config.json")
+	err = config.WriteConfigFile(configPath, []byte(jsonStr))
 	if err != nil {
 		r.ErrMesage(c, "修改失败,配置文件写入失败")
 		return
@@ -137,7 +139,8 @@ func (p *ApiData) HandlerUpdatePass(c *gin.Context) {
 		return
 	}
 	jsonStr, _ := sjson.Set(cfg.Raw, "password", req.Password)
-	err = os.WriteFile("data/config.json", []byte(jsonStr), 0644)
+	configPath := pathutil.GetDataPath("config.json")
+	err = config.WriteConfigFile(configPath, []byte(jsonStr))
 	if err != nil {
 		r.ErrMesage(c, "修改失败,配置文件写入失败")
 		return
