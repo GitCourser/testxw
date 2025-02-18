@@ -109,6 +109,10 @@ func (p *ApiData) HandlerUpdateUserProfile(c *gin.Context) {
 		return
 	}
 
+	// 记录请求参数（不包含密码）
+	log.Printf("更新用户配置请求: username=%v, cookie_days=%v, log_days=%v", 
+		req.Username, req.CookieExpireDays, req.LogCleanDays)
+
 	cfg, err := config.ReadConfigFileToJson()
 	if err != nil {
 		r.ErrMesage(c, "读取配置文件失败")
@@ -129,26 +133,41 @@ func (p *ApiData) HandlerUpdateUserProfile(c *gin.Context) {
 		}
 		jsonStr, _ = sjson.Set(jsonStr, "username", req.Username)
 		needResetToken = true
+		log.Printf("用户名已更新为: %s", req.Username)
 	}
 
 	// 更新密码
-	if req.Password != "" {
-		if req.OldPassword == "" {
-			r.ErrMesage(c, "请提供旧密码")
-			return
-		}
-		if cfg.Get("password").String() != req.OldPassword {
+	if req.Password != "" && req.OldPassword != "" {
+		currentPass := cfg.Get("password").String()
+		log.Printf("密码验证: 当前密码长度=%d, 提供的旧密码长度=%d", 
+			len(currentPass), len(req.OldPassword))
+
+		if currentPass != req.OldPassword {
+			log.Printf("密码验证失败: 旧密码不匹配")
 			r.ErrMesage(c, "旧密码错误")
 			return
 		}
+
+		if req.Password == req.OldPassword {
+			log.Printf("密码验证失败: 新密码与旧密码相同")
+			r.ErrMesage(c, "新密码不能与旧密码相同")
+			return
+		}
+
 		jsonStr, _ = sjson.Set(jsonStr, "password", req.Password)
 		needResetToken = true
+		log.Printf("密码已更新")
+	} else if req.Password != "" {
+		log.Printf("密码更新失败: 未提供旧密码")
+		r.ErrMesage(c, "请提供旧密码")
+		return
 	}
 
 	// 更新Cookie过期天数
 	if req.CookieExpireDays > 0 {
 		jsonStr, _ = sjson.Set(jsonStr, "cookie_expire_days", req.CookieExpireDays)
 		globalCookieExpireDays = req.CookieExpireDays
+		log.Printf("Cookie过期天数已更新为: %d", req.CookieExpireDays)
 	}
 
 	// 更新日志清理天数
@@ -157,11 +176,13 @@ func (p *ApiData) HandlerUpdateUserProfile(c *gin.Context) {
 		globalLogCleanDays = req.LogCleanDays
 		// 更新系统任务中的清理天数
 		xuanwu.UpdateLogCleanDays(req.LogCleanDays)
+		log.Printf("日志清理天数已更新为: %d", req.LogCleanDays)
 	}
 
 	// 写入配置文件
 	configPath := pathutil.GetDataPath("config.json")
 	if err := config.WriteConfigFile(configPath, []byte(jsonStr)); err != nil {
+		log.Printf("配置文件写入失败: %v", err)
 		r.ErrMesage(c, "配置文件写入失败")
 		return
 	}
@@ -169,6 +190,7 @@ func (p *ApiData) HandlerUpdateUserProfile(c *gin.Context) {
 	// 如果修改了用户名或密码，强制用户重新登录
 	if needResetToken {
 		p.ClearUserToken(c)
+		log.Printf("用户token已清除，需要重新登录")
 	}
 
 	r.OkMesage(c, "更新成功")
