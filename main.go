@@ -56,15 +56,18 @@ func main() {
 		log.Println("读取配置文件出错")
 		return
 	}
-	fmt.Println(time.Now())
-	log.Println("玄武系统启动")
+
+	// 初始化全局配置
+	serve.InitGlobalConfig()
 
 	//初始化web服务 传递端口
 	go serve.InitApi(cfg, nil)
 	//初始化定时任务
 	go xuanwu.CronInit(cfg)
 
+	fmt.Println(time.Now())
 	fmt.Println("玄武启动，按 Ctrl+C 退出")
+	log.Println("玄武系统启动")
 
 	<-sigChan
 }
