@@ -27,8 +27,8 @@ func (p *ApiData) ClearUserToken(c *gin.Context) {
 func (p *ApiData) CookieHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//这里做用户认证处理
-		//判断请求是不是admin后台静态资源,不做权限认证
-		if strings.HasPrefix(c.Request.RequestURI, "/admin") {
+		//判断请求是不是xwui后台静态资源,不做权限认证
+		if strings.HasPrefix(c.Request.RequestURI, "/xwui") {
 			c.Next()
 		} else if strings.HasPrefix(c.Request.RequestURI, "/api") {
 			cookie, err := c.Cookie("cookie")
@@ -66,7 +66,7 @@ func (p *ApiData) CookieHandler() gin.HandlerFunc {
 			}
 		} else {
 			//重定向
-			c.Redirect(http.StatusMovedPermanently, "/admin/")
+			c.Redirect(http.StatusMovedPermanently, "/xwui/")
 		}
 		// after request  请求前处理
 		c.Next()

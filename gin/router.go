@@ -39,23 +39,26 @@ func (p *ApiData) Init() {
 	p.RootRoute = RootRoute
 	RootRoute.Use(p.CookieHandler()) //全局用户认证
 
-	routeApi := RootRoute.Group("/api") //  api接口总路由
+	routeApi := RootRoute.Group("/api") // api接口总路由
 	filesys, err := static.StaticFS()
 	if err != nil {
 		log.Println("加载后台文件失败,web服务停止")
 		return
 	}
-	RootRoute.StaticFS("/admin", http.FS(filesys))
+	RootRoute.StaticFS("/xwui", http.FS(filesys))
 
-	routeAdmin := routeApi.Group("/user") // 用户数据接口
+	// 管理接口
+	routeAdmin := routeApi.Group("/user")
 	routeAdmin.GET("/profile", p.HandlerGetUserProfile)    // 获取用户配置
 	routeAdmin.POST("/profile", p.HandlerUpdateUserProfile) // 更新用户配置
 
-	routeAuth := routeApi.Group("/auth") // 用户数据接口
+	// 登录接口
+	routeAuth := routeApi.Group("/auth")
 	routeAuth.POST("/login", p.LoginHandle)
 	routeAuth.GET("/logout", p.LogoutHandler)
 
-	routeCron := routeApi.Group("/cron") // 定时任务接口
+	// 定时任务接口
+	routeCron := routeApi.Group("/cron")
 	/* 任务源 */
 	routeCron.GET("/list", cron.HandlerTaskList)    //获取任务列表（包含运行状态）
 	routeCron.GET("/delete", cron.HandlerDeleteTask)   //删除源任务
