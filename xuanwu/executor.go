@@ -13,6 +13,7 @@ import (
 	"xuanwu/lib/pathutil"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
+	"xuanwu/lib/xwlog"
 )
 
 // 处理工作目录路径
@@ -66,9 +67,14 @@ func newEncodingScanner(reader io.Reader) *bufio.Scanner {
 }
 
 // 执行任务命令
-func ExecTask(command string, workDir string, log *log.Logger) error {
+func ExecTask(command string, workDir string, logger *log.Logger) error {
 	// 记录开始时间
 	startTime := time.Now()
+	
+	// 如果logger实现了我们的接口，设置开始时间
+	if tw, ok := logger.Writer().(*xwlog.TaskLogWriter); ok {
+		tw.SetStartTime(startTime)
+	}
 
 	// 处理工作目录
 	workDir = HandleWorkDir(workDir)
@@ -110,7 +116,7 @@ func ExecTask(command string, workDir string, log *log.Logger) error {
 		defer wg.Done()
 		scanner := newEncodingScanner(stdout)
 		for scanner.Scan() {
-			log.Println(scanner.Text())
+			logger.Println(scanner.Text())
 		}
 	}()
 	
@@ -120,7 +126,7 @@ func ExecTask(command string, workDir string, log *log.Logger) error {
 		defer wg.Done()
 		scanner := newEncodingScanner(stderr)
 		for scanner.Scan() {
-			log.Println(scanner.Text())
+			logger.Println(scanner.Text())
 		}
 	}()
 	
@@ -132,7 +138,7 @@ func ExecTask(command string, workDir string, log *log.Logger) error {
 
 	// 计算并输出执行用时
 	duration := time.Since(startTime)
-	log.Printf("任务执行完成，用时: %v\n", duration)
+	logger.Printf("任务执行完成，用时: %v\n", duration)
 	
 	return err
 }
