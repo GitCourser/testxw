@@ -20,25 +20,18 @@ type LogConfig struct {
 
 // 自定义日志写入器
 type taskLogWriter struct {
-	file     *os.File
-	lastTime time.Time // 记录上次写入时间
+	file      *os.File
+	lastTime  time.Time // 记录上次写入时间
+	startTime time.Time // 记录任务开始时间
 }
 
 func (w *taskLogWriter) Write(p []byte) (n int, err error) {
 	now := time.Now()
 	
-	// // 如果不是首次写入，且与上次写入不是同一次任务执行（间隔超过1秒）
-	// if !w.lastTime.IsZero() && now.Sub(w.lastTime).Seconds() > 1 {
-	// 	// 添加空行分隔
-	// 	if _, err := w.file.WriteString("\n"); err != nil {
-	// 		return 0, err
-	// 	}
-	// }
-	
 	// 如果是新的任务执行（lastTime为零或与当前时间相差超过1秒）
 	if w.lastTime.IsZero() || now.Sub(w.lastTime).Seconds() > 1 {
-		// 写入时间头
-		timeHeader := "\n" + now.Format("2006-01-02 15:04:05") + "\n"
+		// 写入时间头,使用startTime
+		timeHeader := "\n" + w.startTime.Format("2006-01-02 15:04:05") + "\n"
 		if _, err := w.file.WriteString(timeHeader); err != nil {
 			return 0, err
 		}
@@ -88,7 +81,10 @@ func LogInitWithConfig(name string, config *LogConfig) (*log.Logger, io.WriteClo
 
 	if config.TaskLogFormat && name != "main.log" {
 		// 对于任务日志，使用自定义writer
-		writer = &taskLogWriter{file: file}
+		writer = &taskLogWriter{
+			file:      file,
+			startTime: time.Now(), // 初始化时记录开始时间
+		}
 		flags = 0 // 不需要标准日志前缀
 	}
 
