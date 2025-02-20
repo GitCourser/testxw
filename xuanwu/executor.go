@@ -72,7 +72,7 @@ func ExecTask(command string, workDir string, logger *log.Logger) error {
 	startTime := time.Now()
 	
 	// 如果logger实现了我们的接口，设置开始时间
-	if tw, ok := logger.Writer().(*xwlog.TaskLogWriter); ok {
+	if tw, ok := logger.Writer().(xwlog.TaskLogWriter); ok {
 		tw.SetStartTime(startTime)
 	}
 
