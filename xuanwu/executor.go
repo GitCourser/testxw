@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 	"xuanwu/lib/pathutil"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
@@ -66,6 +67,9 @@ func newEncodingScanner(reader io.Reader) *bufio.Scanner {
 
 // 执行任务命令
 func ExecTask(command string, workDir string, log *log.Logger) error {
+	// 记录开始时间
+	startTime := time.Now()
+
 	// 处理工作目录
 	workDir = HandleWorkDir(workDir)
 	
@@ -125,6 +129,10 @@ func ExecTask(command string, workDir string, log *log.Logger) error {
 	
 	// 等待所有输出读取完成
 	wg.Wait()
+
+	// 计算并输出执行用时
+	duration := time.Since(startTime)
+	log.Printf("任务执行完成，用时: %v\n", duration)
 	
 	return err
 }
