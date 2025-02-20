@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sync"
 	"time"
 	"xuanwu/lib/pathutil"
 )
@@ -18,14 +19,32 @@ type LogConfig struct {
 	TaskLogFormat bool // true: 任务日志格式(只在第一行显示时间), false: 标准日志格式
 }
 
-// 自定义日志写入器
+// TaskLogWriter 导出的接口
+type TaskLogWriter interface {
+	io.WriteCloser
+	SetStartTime(time.Time)
+}
+
+// taskLogWriter 实现
 type taskLogWriter struct {
 	file      *os.File
 	lastTime  time.Time // 记录上次写入时间
 	startTime time.Time // 记录任务开始时间
+	mu        sync.Mutex // 保护并发访问
+}
+
+// SetStartTime 设置任务开始时间
+func (w *taskLogWriter) SetStartTime(t time.Time) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.startTime = t
+	w.lastTime = time.Time{} // 重置lastTime以确保写入新的时间头
 }
 
 func (w *taskLogWriter) Write(p []byte) (n int, err error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	
 	now := time.Now()
 	
 	// 如果是新的任务执行（lastTime为零或与当前时间相差超过1秒）
