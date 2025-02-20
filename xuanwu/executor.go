@@ -13,7 +13,7 @@ import (
 	"xuanwu/lib/pathutil"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
-	"xuanwu/lib/xwlog"
+	xwlog "xuanwu/log"
 )
 
 // 处理工作目录路径
