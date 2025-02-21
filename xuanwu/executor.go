@@ -6,14 +6,15 @@ import (
 	"io"
 	"log"
 	"os/exec"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
+	"xuanwu/config"
 	"xuanwu/lib/pathutil"
+	xwlog "xuanwu/log"
+
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
-	xwlog "xuanwu/log"
 )
 
 // 处理工作目录路径
@@ -24,7 +25,7 @@ func HandleWorkDir(workDir string) string {
 	}
 	
 	// Windows系统检查盘符
-	if runtime.GOOS == "windows" {
+	if config.IsWindows {
 		if len(workDir) >= 2 && workDir[1] == ':' {
 			return workDir
 		}
@@ -42,7 +43,7 @@ func HandleWorkDir(workDir string) string {
 // 将GBK编码的文本转换为UTF8
 func convertGBKToUTF8(text string) string {
 	// 如果不是Windows系统,直接返回
-	if runtime.GOOS != "windows" {
+	if !config.IsWindows {
 		return text
 	}
 
@@ -58,7 +59,7 @@ func convertGBKToUTF8(text string) string {
 
 // 创建一个支持编码转换的Scanner
 func newEncodingScanner(reader io.Reader) *bufio.Scanner {
-	if runtime.GOOS == "windows" {
+	if config.IsWindows {
 		// Windows环境下,创建一个GBK到UTF8的转换器
 		utf8Reader := transform.NewReader(reader, simplifiedchinese.GBK.NewDecoder())
 		return bufio.NewScanner(utf8Reader)
@@ -81,7 +82,7 @@ func ExecTask(command string, workDir string, logger *log.Logger) error {
 	
 	// 创建命令
 	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
+	if config.IsWindows {
 		cmd = exec.Command("cmd", "/c", command)
 	} else {
 		cmd = exec.Command("sh", "-c", command)
@@ -138,7 +139,7 @@ func ExecTask(command string, workDir string, logger *log.Logger) error {
 
 	// 计算并输出执行用时
 	duration := time.Since(startTime)
-	logger.Printf("任务执行完成，用时: %v\n", duration)
+	logger.Printf("任务完成，用时：%v\n", duration)
 	
 	return err
 }
