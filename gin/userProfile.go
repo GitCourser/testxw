@@ -99,6 +99,7 @@ func (p *ApiData) HandlerGetUserProfile(c *gin.Context) {
 	r.OkData(c, gin.H{
 		"profile": profile,
 		"version": config.Version,
+		"is_windows": config.IsWindows,
 	})
 }
 
