@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"xuanwu/lib/pathutil"
 
 	"github.com/tidwall/gjson"
 )
 
-var Version = "1.0.0"
+var (
+	IsWindows = runtime.GOOS == "windows"
+	Version   = "1.0.0"
+)
 
 // 将config文件读取到json字符串
 func ReadConfigFileToJson() (gjson.Result, error) {
